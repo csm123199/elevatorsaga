@@ -1,0 +1,24 @@
+{
+  "name": "elevatorsaga.ts",
+  "version": "1.0.0",
+  "description": "Elevator Saga - The elevator programming game",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/csm123199/elevatorsaga.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/csm123199/elevatorsaga/issues"
+  },
+  "homepage": "https://github.com/csm123199/elevatorsaga#readme",
+  "devDependencies": {
+    "typescript": "^3.4.5"
+  }
+}
