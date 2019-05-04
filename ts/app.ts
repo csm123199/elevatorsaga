@@ -1,18 +1,32 @@
 
+
+//import * as _ from 'lodash'
+//declare const document: document;
+declare const riot: typeof import('riot')
+declare const _: typeof import('lodash')
+declare const CodeMirror: typeof import('codemirror')
+import { getCodeObjFromCode, UserCodeObject } from './base.js'
+import { WorldController, WorldCreator } from './world.js'
+import { Observable } from './riot_types.js';
+import { ObservableClass } from './movable.js';
+import { challenges } from './challenges.js';
+
 var createEditor = function() {
 	var lsKey = "elevatorCrushCode_v5";
 
-	var cm = CodeMirror.fromTextArea(document.getElementById("code"), {
+	var cm = CodeMirror.fromTextArea(document.getElementById("code") as HTMLTextAreaElement, {
 		lineNumbers: true,
 		indentUnit: 4,
 		indentWithTabs: false,
 		theme: "solarized light",
 		mode: "javascript",
+// @ts-ignore
 		autoCloseBrackets: true,
 		extraKeys: {
 			// the following Tab key mapping is from http://codemirror.net/doc/manual.html#keymaps
 			Tab: function(cm) {
 				var spaces = new Array(cm.getOption("indentUnit") + 1).join(" ");
+				// @ts-ignore
 				cm.replaceSelection(spaces);
 			}
 		}
@@ -44,7 +58,7 @@ var createEditor = function() {
 	var saveCode = function() {
 		localStorage.setItem(lsKey, cm.getValue());
 		$("#save_message").text("Code saved " + new Date().toTimeString());
-		returnObj.trigger("change");
+		codeEditorView.trigger("change");
 	};
 
 	var existingCode = localStorage.getItem(lsKey);
@@ -74,43 +88,46 @@ var createEditor = function() {
 		cm.focus();
 	});
 
-	var returnObj = riot.observable({});
-	var autoSaver = _.debounce(saveCode, 1000);
+	const autoSaver = _.debounce(saveCode, 1000);
 	cm.on("change", function() {
 		autoSaver();
 	});
 
-	returnObj.getCodeObj = function() {
-		console.log("Getting code...");
-		var code = cm.getValue();
-		var obj;
-		try {
-			obj = getCodeObjFromCode(code);
-			returnObj.trigger("code_success");
-		} catch(e) {
-			returnObj.trigger("usercode_error", e);
-			return null;
+	class CodeEditorView extends ObservableClass {
+		constructor() {
+			super();
+			$("#button_apply").click(() => {
+				this.trigger("apply_code");
+			});
 		}
-		return obj;
-	};
-	returnObj.setCode = function(code) {
-		cm.setValue(code);
-	};
-	returnObj.getCode = function() {
-		return cm.getValue();
+		getCodeObj(): UserCodeObject | null {
+			console.log("Getting code...");
+			const codeStr = cm.getValue();
+			try {
+				const obj = getCodeObjFromCode(codeStr);
+				this.trigger("code_success");
+				return obj;
+			} catch(e) {
+				this.trigger("usercode_error", e);
+				return null;
+			}
+		};
+		setCode(code: string): void {
+			cm.setValue(code);
+		};
+		getCode(): string {
+			return cm.getValue();
+		}
+		setDevTestCode(): void {
+			cm.setValue($("#devtest-elev-implementation").text().trim());
+		}
 	}
-	returnObj.setDevTestCode = function() {
-		cm.setValue($("#devtest-elev-implementation").text().trim());
-	}
-
-	$("#button_apply").click(function() {
-		returnObj.trigger("apply_code");
-	});
-	return returnObj;
+	const codeEditorView = new CodeEditorView();
+	return codeEditorView;
 };
 
 
-var createParamsUrl = function(current, overrides) {
+function createParamsUrl(current: Record<string, string>, overrides: Record<string, string>): string {
 	return "#" + _.map(_.merge(current, overrides), function(val, key) {
 		return key + "=" + val;
 	}).join(",");
@@ -130,23 +147,26 @@ $(function() {
 	var $challenge = $(".challenge");
 	var $codestatus = $(".codestatus");
 
-	var floorTempl = document.getElementById("floor-template").innerHTML.trim();
-	var elevatorTempl = document.getElementById("elevator-template").innerHTML.trim();
-	var elevatorButtonTempl = document.getElementById("elevatorbutton-template").innerHTML.trim();
-	var userTempl = document.getElementById("user-template").innerHTML.trim();
-	var challengeTempl = document.getElementById("challenge-template").innerHTML.trim();
-	var feedbackTempl = document.getElementById("feedback-template").innerHTML.trim();
-	var codeStatusTempl = document.getElementById("codestatus-template").innerHTML.trim();
+	// note: use of TypeScript non-null assertion operator
+	var floorTempl = document.getElementById("floor-template")!.innerHTML.trim();
+	var elevatorTempl = document.getElementById("elevator-template")!.innerHTML.trim();
+	var elevatorButtonTempl = document.getElementById("elevatorbutton-template")!.innerHTML.trim();
+	var userTempl = document.getElementById("user-template")!.innerHTML.trim();
+	var challengeTempl = document.getElementById("challenge-template")!.innerHTML.trim();
+	var feedbackTempl = document.getElementById("feedback-template")!.innerHTML.trim();
+	var codeStatusTempl = document.getElementById("codestatus-template")!.innerHTML.trim();
 
-	var app = riot.observable({});
-	app.worldController = createWorldController(1.0 / 60.0);
+	var app = riot.observable({}) as any;
+	//app.worldController = createWorldController(1.0 / 60.0);
+	app.worldController = new WorldController(1.0 / 60.0);
 	app.worldController.on("usercode_error", function(e) {
 		console.log("World raised code error", e);
 		editor.trigger("usercode_error", e);
 	});
 
 	console.log(app.worldController);
-	app.worldCreator = createWorldCreator();
+	app.worldCreator = new WorldCreator();
+	//app.worldCreator = createWorldCreator();
 	app.world = undefined;
 
 	app.currentChallengeIndex = 0;
@@ -166,7 +186,7 @@ $(function() {
 		}
 		app.currentChallengeIndex = challengeIndex;
 		app.world = app.worldCreator.createWorld(challenges[challengeIndex].options);
-		window.world = app.world;
+		(window as any).world = app.world;
 
 		clearAll([$world, $feedback]);
 		presentStats($stats, app.world);
@@ -191,9 +211,9 @@ $(function() {
 			}
 		});
 
-		var codeObj = editor.getCodeObj();
+		let codeObj = editor.getCodeObj()!;
 		console.log("Starting...");
-		app.worldController.start(app.world, codeObj, window.requestAnimationFrame, autoStart);
+		(app.worldController as WorldController).start(app.world, codeObj, window.requestAnimationFrame, autoStart);
 	};
 
 	editor.on("apply_code", function() {
@@ -220,14 +240,14 @@ $(function() {
 	});
 	editor.trigger("change");
 
-	riot.route(function(path) {
+	(riot as any).route((path) => {
 		params = _.reduce(path.split(","), function(result, p) {
 			var match = p.match(/(\w+)=(\w+$)/);
 			if(match) { result[match[1]] = match[2]; } return result;
 		}, {});
 		var requestedChallenge = 0;
 		var autoStart = false;
-		var timeScale = parseFloat(localStorage.getItem(tsKey)) || 2.0;
+		var timeScale = parseFloat(localStorage.getItem(tsKey)!) || 2.0;
 		_.each(params, function(val, key) {
 			if(key === "challenge") {
 				requestedChallenge = _.parseInt(val) - 1;

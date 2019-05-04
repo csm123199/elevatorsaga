@@ -1,5 +1,5 @@
 importScripts("libs/lodash.min.js", "libs/riot.js", "libs/unobservable.js")
-importScripts("base.js", "movable.js", "floor.js", "user.js", "elevator.js", "interfaces.js", "world.js", "fitness.js");
+importScripts("scripts/base.js", "scripts/movable.js", "scripts/floor.js", "scripts/user.js", "scripts/elevator.js", "scripts/interfaces.js", "scripts/world.js", "scripts/fitness.js");
 
 
 onmessage = function(msg) {

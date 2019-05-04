@@ -1,8 +1,27 @@
 
-var requireUserCountWithinTime = function(userCount, timeLimit) {
+
+import { World } from "./world";
+
+
+export interface WinCondition {
+	description: String,
+	evaluate: (world: World) => null | boolean;
+}
+
+export interface Challenge {
+	options: {
+		floorCount: number,
+		elevatorCount: number,
+		elevatorCapacities?: number[],
+		spawnRate: number,
+	},
+	condition: WinCondition,
+}
+
+function requireUserCountWithinTime(userCount: number, timeLimit: number): WinCondition {
 	return {
 		description: "Transport <span class='emphasis-color'>" + userCount + "</span> people in <span class='emphasis-color'>" + timeLimit.toFixed(0) + "</span> seconds or less",
-		evaluate: function(world) {
+		evaluate: (world) => {
 			if(world.elapsedTime >= timeLimit || world.transportedCounter >= userCount) {
 				return world.elapsedTime <= timeLimit && world.transportedCounter >= userCount;
 			} else {
@@ -12,10 +31,10 @@ var requireUserCountWithinTime = function(userCount, timeLimit) {
 	};
 };
 
-var requireUserCountWithMaxWaitTime = function(userCount, maxWaitTime) {
+function requireUserCountWithMaxWaitTime(userCount: number, maxWaitTime: number): WinCondition {
 	return {
 		description: "Transport <span class='emphasis-color'>" + userCount + "</span> people and let no one wait more than <span class='emphasis-color'>" + maxWaitTime.toFixed(1) + "</span> seconds",
-		evaluate: function(world) {
+		evaluate: (world) => {
 			if(world.maxWaitTime >= maxWaitTime || world.transportedCounter >= userCount) {
 				return world.maxWaitTime <= maxWaitTime && world.transportedCounter >= userCount;
 			} else {
@@ -25,10 +44,10 @@ var requireUserCountWithMaxWaitTime = function(userCount, maxWaitTime) {
 	};
 };
 
-var requireUserCountWithinTimeWithMaxWaitTime = function(userCount, timeLimit, maxWaitTime) {
+function requireUserCountWithinTimeWithMaxWaitTime(userCount: number, timeLimit: number, maxWaitTime: number): WinCondition {
 	return {
 	   description: "Transport <span class='emphasis-color'>" + userCount + "</span> people in <span class='emphasis-color'>" + timeLimit.toFixed(0) + "</span> seconds or less and let no one wait more than <span class='emphasis-color'>" + maxWaitTime.toFixed(1) + "</span> seconds",
-	   evaluate: function(world) {
+	   evaluate: (world) => {
 			if(world.elapsedTime >= timeLimit || world.maxWaitTime >= maxWaitTime || world.transportedCounter >= userCount) {
 				return world.elapsedTime <= timeLimit && world.maxWaitTime <= maxWaitTime && world.transportedCounter >= userCount;
 			} else {
@@ -38,10 +57,10 @@ var requireUserCountWithinTimeWithMaxWaitTime = function(userCount, timeLimit, m
 	};
 };
 
-var requireUserCountWithinMoves = function(userCount, moveLimit) {
+function requireUserCountWithinMoves(userCount: number, moveLimit: number): WinCondition {
 	return {
 		description: "Transport <span class='emphasis-color'>" + userCount + "</span> people using <span class='emphasis-color'>" + moveLimit + "</span> elevator moves or less",
-		evaluate: function(world) {
+		evaluate: (world) => {
 			if(world.moveCount >= moveLimit || world.transportedCounter >= userCount) {
 				return world.moveCount <= moveLimit && world.transportedCounter >= userCount;
 			} else {
@@ -51,15 +70,16 @@ var requireUserCountWithinMoves = function(userCount, moveLimit) {
 	};
 };
 
-var requireDemo = function() {
+function requireDemo(): WinCondition {
 	return {
 		description: "Perpetual demo",
-		evaluate: function() { return null; }
+		evaluate: () => null,
 	};
 };
 
+
 /* jshint laxcomma:true */
-var challenges = [
+export const challenges: Challenge[] = [
 	 {options: {floorCount: 3, elevatorCount: 1, spawnRate: 0.3}, condition: requireUserCountWithinTime(15, 60)}
 	,{options: {floorCount: 5, elevatorCount: 1, spawnRate: 0.4}, condition: requireUserCountWithinTime(20, 60)}
 	,{options: {floorCount: 5, elevatorCount: 1, spawnRate: 0.5, elevatorCapacities: [6]}, condition: requireUserCountWithinTime(23, 60)}
