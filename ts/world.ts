@@ -84,7 +84,7 @@ export class World extends ObservableClass {
 
 	floors: Floor[];
 	elevators: Elevator[];
-	elevatorInterfaces: any;
+	elevatorInterfaces: ElevatorInterface[];
 	users: User[] = [];
 	transportedCounter: number = 0;
 	transportedPerSec: number = 0.0;
@@ -242,18 +242,20 @@ export class World extends ObservableClass {
 	unWind() {
 		console.log("Unwinding", this);
 		
-		// Note: need to be used when ElevatorInterface gets filled in?
-		type AllOfThem = Elevator | ElevatorInterface | User | Floor | World;
 		[
 			this.elevators,
 			this.elevatorInterfaces,
 			this.users,
 			this.floors,
 			[ this ]
-		].flat().forEach(obj => obj.off('*'));
+		].flat<ObservableClass>().forEach(obj => obj.off('*'));
+		
+		this.elevators = [];
+		this.elevatorInterfaces = [];
+		this.users = [];
+		this.floors = [];
 		
 		this.challengeEnded = true;
-		this.elevators = this.elevatorInterfaces = this.users = this.floors = [];
 	}
 
 	init() {

@@ -1,5 +1,6 @@
 
 import { Floor } from './floor.js'
+import { ElevatorInterface } from './interfaces.js'
 
 type ElevatorInterface = any;
 
