@@ -176,11 +176,17 @@ function onPageLoad() {
 				presentCodeStatus($codestatus, codeStatusTempl);
 			});
 			editor.on("usercode_error", (error) => {
-				if(error instanceof Error && error.stack) {
-					// Remove the auto-inserted Module. for the user code
-					error.stack = error.stack.replace(/at Module\./g, `at `)
+				try {
+					if(error instanceof Error && error.stack) {
+						// Remove the auto-inserted Module. for the user code
+						error.stack = error.stack.replace(/at Module\./g, `at `);
+					}
+					presentCodeStatus($codestatus, codeStatusTempl, error);
+				} catch(e) {
+					console.error('Error manipulating user-facing stacktrace!');
+					console.error(e);
+					presentCodeStatus($codestatus, codeStatusTempl, new Error("Internal game error."));
 				}
-				presentCodeStatus($codestatus, codeStatusTempl, error);
 			});
 			editor.on("change", () => {
 				$("#fitness_message").addClass("faded");
