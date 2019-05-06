@@ -85,9 +85,10 @@ export class Elevator extends Movable {
 	trigger(event: "exit_available", floorNumber: number, elevator: Elevator): this;
 	trigger(event: "passing_floor", floorBeingPassed: number, direction: "up" | "down"): this;
 	trigger(event: "new_current_floor", currentFloor: number): this;
+	trigger(event: "new_state", self: this): this; // Movable
+	trigger(event: "new_display_state", self: this): this; // Movable
 	trigger(event: string, ...args: any[]): this {
-		super.trigger(event, ...args);
-		return this;
+		return (super.trigger as (e: string, ...args: any[]) => this)(event, ...args);
 	}
 
 

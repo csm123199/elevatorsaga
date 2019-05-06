@@ -43,12 +43,17 @@ export class ElevatorInterface extends Observable {
 		});
 	}
 
-	protected tryTrigger(event: string, ...args: any) {
+	tryTrigger(event: "idle"): this;
+	tryTrigger(event: "passing_floor", floorNum: number, direction: "up" | "down"): this;
+	tryTrigger(event: "stopped_at_floor", floorNum: number): this;
+	tryTrigger(event: "floor_button_pressed", floorNum: number): this;
+	tryTrigger(event: string, ...args: any[]): this {
 		try {
 			this.trigger(event, ...args);
 		} catch(e) {
 			this.errorHandler(e);
 		}
+		return this;
 	}
 
 	/**

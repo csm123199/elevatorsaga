@@ -32,14 +32,25 @@ export class Floor extends Observable {
 		this.buttonStates_ = newstate;
 	}
 
+	// poision overload for tryTrigger to override (other users shouldn't use trigger directly here)
+	trigger(event: never): this;
+	trigger(event: string, ...args: any[]): this {
+		return super.trigger(event, ...args);
+	}
+	tryTrigger(event: "up_button_pressed", self: this): this;
+	tryTrigger(event: "down_button_pressed", self: this): this;
+	tryTrigger(event: "buttonstate_change", buttonStates: ButtonStates): this;
+	tryTrigger(event: "new_current_floor", currentFloor: number): this;
 	// Note: TODO from original repo
 	// TODO: Ideally the floor should have a facade where tryTrigger is done
-	tryTrigger(event: string, ...args: any[]) {
+	tryTrigger(event: string, ...args: any[]): this {
 		try {
-			this.trigger(event, ...args);
+			// eliminate poison overload
+			(this.trigger as (e: string, ...args) => this)(event, ...args);
 		} catch(e) {
 			this.errorHandler(e);
 		}
+		return this;
 	}
 	pressUpButton() {
 		var prev = this.buttonStates.up;

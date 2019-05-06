@@ -22,6 +22,15 @@ export class User extends Movable {
 		this.spawnTimestamp = spawnTimestamp;
 	}
 
+	trigger(event: "removed"): this;
+	trigger(event: "entered_elevator", elevator: Elevator): this;
+	trigger(event: "exited_elevator", elevator: Elevator): this;
+	trigger(event: "new_state", self: this): this; // Movable
+	trigger(event: "new_display_state", self: this): this; // Movable
+	trigger(event: string, ...args: any[]): this {
+		return (super.trigger as (e: string, ...args: any[]) => this)(event, ...args);
+	}
+
 	// TODO: floor definition
 	appearOnFloor(floor: Floor, destinationFloorNum: number) {
 		const floorPosY = floor.getSpawnPosY();
@@ -47,8 +56,8 @@ export class User extends Movable {
 			var destination = this.x + 100;
 			this.done = true;
 			this.trigger("exited_elevator", elevator);
-			this.trigger("new_state");
-			this.trigger("new_display_state");
+			this.trigger("new_state", this);
+			this.trigger("new_display_state", this);
 			var self = this;
 			const lastMove = () => {
 				this.removeMe = true;
