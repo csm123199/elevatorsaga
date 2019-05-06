@@ -252,32 +252,48 @@ function onPageLoad() {
 	//var app = riot.observable({}) as any;
 	let app = new ElevatorSagaApp();
 
-	(riot as any).route((path) => {
-		params = _.reduce(path.split(","), function(result, p) {
-			var match = p.match(/(\w+)=(\w+$)/);
-			if(match) { result[match[1]] = match[2]; } return result;
+	(riot as any).route((path: string) => {
+		params = path.split(',').reduce((paramObj: Record<string, string>, pair: string) => {
+			let match = pair.match(/(\w+)=(\w+$)/);
+			if(match !== null) {
+				let [whole, key, value] = match;
+				paramObj[key] = value;
+			}
+			return paramObj;
 		}, {});
-		var requestedChallenge = 0;
-		var autoStart = false;
-		var timeScale = parseFloat(localStorage.getItem(tsKey)!) || 2.0;
-		_.each(params, function(val, key) {
-			if(key === "challenge") {
+
+		
+		let requestedChallenge = 0;
+		let autoStart = false;
+		// if getItem(tsKey) returns null, parseFloat returns NaN (falsy) so timeScale = 2.0
+		let timeScale = parseFloat(localStorage.getItem(tsKey)!) || 2.0;
+		
+		for(let [key, val] of Object.entries<string>(params)) {
+			switch(key) {
+				case "challenge":
 				requestedChallenge = _.parseInt(val) - 1;
 				if(requestedChallenge < 0 || requestedChallenge >= challenges.length) {
 					console.log("Invalid challenge index", requestedChallenge);
 					console.log("Defaulting to first challenge");
 					requestedChallenge = 0;
 				}
-			} else if(key === "autostart") {
+					break;
+				case "autostart":
+					// False by default, set to true if this key exists (and isn't `false`)
 				autoStart = val === "false" ? false : true;
-			} else if(key === "timescale") {
+					break;
+				case "timescale":
 				timeScale = parseFloat(val);
-			} else if(key === "devtest") {
+					break;
+				case "devtest":
 				editor.setDevTestCode();
-			} else if(key === "fullscreen") {
+					break;
+				case "fullscreen":
 				makeDemoFullscreen();
+					break;
 			}
-		});
+			}
+
 		app.worldController.setTimeScale(timeScale);
 		app.startChallenge(requestedChallenge, autoStart);
 	});
