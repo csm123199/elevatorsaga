@@ -2,7 +2,7 @@
 import { Floor } from './floor.js'
 import { ElevatorInterface } from './interfaces.js'
 
-type ElevatorInterface = any;
+export const USERCODE_MODULE_NAME = 'UserCode';
 
 export interface FrameRequest {
 	/** The time, based on triggered timeSteps */
@@ -102,21 +102,23 @@ function createFrameRequester(timeStep: number): FrameRequest {
 	return requester;
 };
 
+function asDataURI(c: string): string {
+	// note: *not* unicode safe
+	return 'data:text/javascript;base64,' + btoa(c);
+}
 
-
-export function getCodeObjFromCode(code: string): UserCodeObject {
-	if (code.trim().substr(0,1) == "{" && code.trim().substr(-1,1) == "}") {
-		code = "(" + code + ")";
+export async function getCodeObjFromCode(code: string): Promise<UserCodeObject> {
+	// Change the 'name' of the file so it doesn't appear as a giant base64 str in the stacktrace
+	code += `\n\n//# sourceURL=${USERCODE_MODULE_NAME}.js`
+	
+	let dataURI = asDataURI(code);
+	let userModule: UserCodeObject = await import(dataURI);
+	if(typeof userModule.init !== "function") {
+		throw new TypeError("exported `init` is not a function! (has it been exported?)");
 	}
-	/* jslint evil:true */
-	let obj = eval(code) as UserCodeObject;
-	/* jshint evil:false */
-	if(typeof obj.init !== "function") {
-		throw "Code must contain an init function";
+	if(typeof userModule.update !== "function" && typeof userModule.update !== "undefined") {
+		throw new TypeError("exported `update` is not a function!");
 	}
-	if(typeof obj.update !== "function") {
-		throw "Code must contain an update function";
-	}
-	return obj;
+	return userModule;
 }
 
