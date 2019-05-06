@@ -1,5 +1,5 @@
 
-import { newGuard, limitNumber, distanceNeededToAchieveSpeed, accelerationNeededToAchieveChangeDistance, deprecationWarning, epsilonEquals } from './base.js'
+import { limitNumber, distanceNeededToAchieveSpeed, accelerationNeededToAchieveChangeDistance, deprecationWarning, epsilonEquals } from './base.js'
 import { Movable } from './movable.js';
 import { User } from './user.js'
 
@@ -41,9 +41,6 @@ export class Elevator extends Movable {
 
 	constructor(speedFloorsPerSec: number, floorCount: number, floorHeight: number, maxUsers: number) {
 		super()
-		newGuard(this, Elevator);
-		//Movable.call(this);
-		//var elevator = this;
 	
 		this.ACCELERATION = floorHeight * 2.1;
 		this.DECELERATION = floorHeight * 2.6;

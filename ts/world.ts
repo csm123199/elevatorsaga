@@ -4,7 +4,7 @@ import { UserCodeObject, random, randomRange } from './base.js'
 import { User, UserDisplayType } from './user.js'
 import { Floor } from './floor.js'
 import { Elevator } from './elevator.js'
-import { ObservableClass } from './movable.js';
+import { Observable } from './observable.js';
 import { ElevatorInterface } from './interfaces.js'
 
 export class WorldCreator {
@@ -77,7 +77,7 @@ const defaultWorldOptions: WorldOptions = {
 	elevatorCount: 2,
 	spawnRate: 0.5
 }
-export class World extends ObservableClass {
+export class World extends Observable {
 	readonly creator: WorldCreator;
 	readonly floorHeight: number;
 	readonly spawnRate: number;
@@ -248,7 +248,7 @@ export class World extends ObservableClass {
 			this.users,
 			this.floors,
 			[ this ]
-		].flat<ObservableClass>().forEach(obj => obj.off('*'));
+		].flat<Observable>().forEach(obj => obj.off('*'));
 		
 		this.elevators = [];
 		this.elevatorInterfaces = [];
@@ -274,7 +274,7 @@ export class World extends ObservableClass {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export class WorldController extends ObservableClass {
+export class WorldController extends Observable {
 	timeScale: number;
 	isPaused: boolean;
 	dtMax: number;

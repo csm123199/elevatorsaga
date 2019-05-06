@@ -1,11 +1,11 @@
-import { ObservableClass } from "./movable.js";
+import { Observable } from "./observable.js";
 import { Elevator } from "./elevator.js";
 import { epsilonEquals, limitNumber, createBoolPassthroughFunction } from "./base.js";
 
 // Interface that hides actual elevator object behind a more robust facade,
 // while also exposing relevant events, and providing some helper queue
 // functions that allow programming without async logic.
-export class ElevatorInterface extends ObservableClass {
+export class ElevatorInterface extends Observable {
 	readonly elevator: Elevator;
 	readonly floorCount: number;
 	readonly errorHandler: (e: any) => void;

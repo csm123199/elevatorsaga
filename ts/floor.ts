@@ -1,5 +1,5 @@
 
-import { ObservableClass } from './movable.js'
+import { Observable } from './observable.js'
 import { Elevator } from './elevator.js';
 
 type ButtonState = "" | "activated";
@@ -8,7 +8,7 @@ interface ButtonStates {
 	down: ButtonState;
 }
 
-export class Floor extends ObservableClass {
+export class Floor extends Observable {
 	readonly level: number;
 	readonly yPosition: number;
 	buttonStates_: ButtonStates;

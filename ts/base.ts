@@ -37,11 +37,6 @@ export function deprecationWarning(name: any): void {
 	console.warn("You are using a deprecated feature scheduled for removal: " + name);
 };
 
-/** Ensures `obj` is an instanceof the prototype `type` */
-export function newGuard(obj: any, type: any) {
-	if(!(obj instanceof type)) { throw "Incorrect instantiation, got " + typeof obj + " but expected " + type; }
-}
-
 export interface BoolGetterSetter<T> {
 	(val: boolean): T;
 	(): boolean;

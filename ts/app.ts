@@ -7,8 +7,7 @@ declare const _: typeof import('lodash')
 declare const CodeMirror: typeof import('codemirror')
 import { getCodeObjFromCode, UserCodeObject, USERCODE_MODULE_NAME } from './base.js'
 import { WorldController, WorldCreator, World } from './world.js'
-import { Observable } from './riot_types.js';
-import { ObservableClass } from './movable.js';
+import { Observable } from './observable.js';
 import { challenges } from './challenges.js';
 
 var createEditor = function() {
@@ -93,7 +92,7 @@ var createEditor = function() {
 		autoSaver();
 	});
 
-	class CodeEditorView extends ObservableClass {
+	class CodeEditorView extends Observable {
 		constructor() {
 			super();
 			$("#button_apply").click(() => {
@@ -149,7 +148,7 @@ function onPageLoad() {
 	var feedbackTempl = document.getElementById("feedback-template")!.innerHTML.trim();
 	var codeStatusTempl = document.getElementById("codestatus-template")!.innerHTML.trim();
 
-	class ElevatorSagaApp extends ObservableClass {
+	class ElevatorSagaApp extends Observable {
 		worldController: WorldController;
 		worldCreator: WorldCreator;
 		world?: World;

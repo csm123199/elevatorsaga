@@ -1,6 +1,4 @@
 
-
-import { newGuard } from './base.js'
 import { Movable, linearInterpolate } from './movable.js'
 import { Elevator } from './elevator.js'
 
@@ -19,7 +17,6 @@ export class User extends Movable {
 
 	constructor(weight: number, displayType: UserDisplayType, spawnTimestamp: number) {
 		super();
-		newGuard(this, User);
 		this.weight = weight;
 		this.displayType = displayType;
 		this.spawnTimestamp = spawnTimestamp;
