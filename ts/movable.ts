@@ -26,8 +26,8 @@ const _tmpPosStorage: [number, number] = [0,0];
 const DEBUG_FILTER_BLACKLIST = ['stats_changed', 'stats_display_changed']
 
 export class ObservableClass implements Observable {
-	readonly asObservable;
-	readonly asOriginal;
+	private readonly asObservable;
+	private readonly asOriginal;
 	constructor() {
 		// Backup own functions (these will get overwritten by riot.observable(this)
 		this.asOriginal = {
