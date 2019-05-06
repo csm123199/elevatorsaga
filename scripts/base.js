@@ -1,3 +1,4 @@
+export const USERCODE_MODULE_NAME = 'UserCode';
 export function random(max, inclusive = true) {
     return Math.floor(Math.random() * (max + (inclusive ? 1 : 0)));
 }
@@ -16,12 +17,6 @@ export function deprecationWarning(name) {
     console.warn("You are using a deprecated feature scheduled for removal: " + name);
 }
 ;
-/** Ensures `obj` is an instanceof the prototype `type` */
-export function newGuard(obj, type) {
-    if (!(obj instanceof type)) {
-        throw "Incorrect instantiation, got " + typeof obj + " but expected " + type;
-    }
-}
 ;
 // Returns function to set/get bool `obj[objPropertyName]` and (if setting) return `owner` otherwise return `obj[objPropertyName]
 export function createBoolPassthroughFunction(host, owner, prop) {
@@ -69,19 +64,21 @@ function createFrameRequester(timeStep) {
     return requester;
 }
 ;
-export function getCodeObjFromCode(code) {
-    if (code.trim().substr(0, 1) == "{" && code.trim().substr(-1, 1) == "}") {
-        code = "(" + code + ")";
+function asDataURI(c) {
+    // note: *not* unicode safe
+    return 'data:text/javascript;base64,' + btoa(c);
+}
+export async function getCodeObjFromCode(code) {
+    // Change the 'name' of the file so it doesn't appear as a giant base64 str in the stacktrace
+    code += `\n\n//# sourceURL=${USERCODE_MODULE_NAME}.js`;
+    let dataURI = asDataURI(code);
+    let userModule = await import(dataURI);
+    if (typeof userModule.init !== "function") {
+        throw new TypeError("exported `init` is not a function! (has it been exported?)");
     }
-    /* jslint evil:true */
-    let obj = eval(code);
-    /* jshint evil:false */
-    if (typeof obj.init !== "function") {
-        throw "Code must contain an init function";
+    if (typeof userModule.update !== "function" && typeof userModule.update !== "undefined") {
+        throw new TypeError("exported `update` is not a function!");
     }
-    if (typeof obj.update !== "function") {
-        throw "Code must contain an update function";
-    }
-    return obj;
+    return userModule;
 }
 //# sourceMappingURL=base.js.map

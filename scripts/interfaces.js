@@ -1,9 +1,9 @@
-import { ObservableClass } from "./movable.js";
+import { Observable } from "./observable.js";
 import { epsilonEquals, limitNumber, createBoolPassthroughFunction } from "./base.js";
 // Interface that hides actual elevator object behind a more robust facade,
 // while also exposing relevant events, and providing some helper queue
 // functions that allow programming without async logic.
-export class ElevatorInterface extends ObservableClass {
+export class ElevatorInterface extends Observable {
     constructor(elevator, floorCount, errorHandler) {
         super();
         this.destinationQueue = [];
@@ -43,6 +43,7 @@ export class ElevatorInterface extends ObservableClass {
         catch (e) {
             this.errorHandler(e);
         }
+        return this;
     }
     /**
      * If the elevator is not busy, go to the first floor in the queue.

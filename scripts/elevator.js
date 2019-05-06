@@ -1,4 +1,4 @@
-import { newGuard, limitNumber, distanceNeededToAchieveSpeed, accelerationNeededToAchieveChangeDistance, deprecationWarning, epsilonEquals } from './base.js';
+import { limitNumber, distanceNeededToAchieveSpeed, accelerationNeededToAchieveChangeDistance, deprecationWarning, epsilonEquals } from './base.js';
 import { Movable } from './movable.js';
 function newElevStateHandler(elevator) {
     elevator.handleNewState();
@@ -6,9 +6,6 @@ function newElevStateHandler(elevator) {
 export class Elevator extends Movable {
     constructor(speedFloorsPerSec, floorCount, floorHeight, maxUsers) {
         super();
-        newGuard(this, Elevator);
-        //Movable.call(this);
-        //var elevator = this;
         this.ACCELERATION = floorHeight * 2.1;
         this.DECELERATION = floorHeight * 2.6;
         this.MAXSPEED = floorHeight * speedFloorsPerSec;
@@ -40,8 +37,7 @@ export class Elevator extends Movable {
         });
     }
     trigger(event, ...args) {
-        super.trigger(event, ...args);
-        return this;
+        return super.trigger(event, ...args);
     }
     setFloorPosition(floor) {
         let destination = this.getYPosOfFloor(floor);

@@ -134,15 +134,20 @@ function presentWorld($world, world, floorTempl, elevatorTempl, elevatorButtonTe
 ;
 function presentCodeStatus($parent, templ, error) {
     console.log(error);
-    var errorDisplay = error ? "block" : "none";
-    var successDisplay = error ? "none" : "block";
-    var errorMessage = error;
+    let errorDisplay = error ? "block" : "none";
+    let successDisplay = error ? "none" : "block";
+    let errorMessage = error;
     if (error && error.stack) {
         errorMessage = error.stack;
-        errorMessage = errorMessage.replace(/\n/g, "<br>");
     }
-    var status = riot.render(templ, { errorMessage: errorMessage, errorDisplay: errorDisplay, successDisplay: successDisplay });
-    $parent.html(status);
+    // Use the brower's mechanisms to escape the user data
+    let dummyTag = document.createElement("div");
+    dummyTag.textContent = errorMessage;
+    errorMessage = dummyTag.innerHTML;
+    errorMessage = errorMessage.replace(/\n/g, "<br>"); // Keep newline for debugging readability
+    errorMessage = errorMessage.replace(/(\n|<br>|^)( +)/g, (match, newline_specifier, spaces) => newline_specifier + "&nbsp;".repeat(spaces.length * 2));
+    let rendered = riot.render(templ, { errorMessage, errorDisplay, successDisplay });
+    $parent.html(rendered); // $parent[0].innerHTML = rendered
 }
 ;
 function makeDemoFullscreen() {

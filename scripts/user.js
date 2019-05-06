@@ -1,4 +1,3 @@
-import { newGuard } from './base.js';
 import { Movable, linearInterpolate } from './movable.js';
 export class User extends Movable {
     constructor(weight, displayType, spawnTimestamp) {
@@ -10,10 +9,12 @@ export class User extends Movable {
         this.exitAvailableHandler = (floorNum, elevator) => {
             this.handleExit(elevator.currentFloor, elevator);
         };
-        newGuard(this, User);
         this.weight = weight;
         this.displayType = displayType;
         this.spawnTimestamp = spawnTimestamp;
+    }
+    trigger(event, ...args) {
+        return super.trigger(event, ...args);
     }
     // TODO: floor definition
     appearOnFloor(floor, destinationFloorNum) {
@@ -41,8 +42,8 @@ export class User extends Movable {
             var destination = this.x + 100;
             this.done = true;
             this.trigger("exited_elevator", elevator);
-            this.trigger("new_state");
-            this.trigger("new_display_state");
+            this.trigger("new_state", this);
+            this.trigger("new_display_state", this);
             var self = this;
             const lastMove = () => {
                 this.removeMe = true;

@@ -2,7 +2,7 @@ import { random, randomRange } from './base.js';
 import { User } from './user.js';
 import { Floor } from './floor.js';
 import { Elevator } from './elevator.js';
-import { ObservableClass } from './movable.js';
+import { Observable } from './observable.js';
 import { ElevatorInterface } from './interfaces.js';
 export class WorldCreator {
     createFloors(floorCount, floorHeight, errorHandler) {
@@ -67,7 +67,7 @@ const defaultWorldOptions = {
     elevatorCount: 2,
     spawnRate: 0.5
 };
-export class World extends ObservableClass {
+export class World extends Observable {
     constructor(creator, options) {
         super();
         this.users = [];
@@ -190,8 +190,11 @@ export class World extends ObservableClass {
             this.floors,
             [this]
         ].flat().forEach(obj => obj.off('*'));
+        this.elevators = [];
+        this.elevatorInterfaces = [];
+        this.users = [];
+        this.floors = [];
         this.challengeEnded = true;
-        this.elevators = this.elevatorInterfaces = this.users = this.floors = [];
     }
     init() {
         // Checking the floor queue of the elevators triggers the idle event here
@@ -206,7 +209,7 @@ export class World extends ObservableClass {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-export class WorldController extends ObservableClass {
+export class WorldController extends Observable {
     constructor(dtMax) {
         super();
         this.handleUserCodeError = (e) => {
@@ -240,7 +243,8 @@ export class WorldController extends ObservableClass {
                 var scaledDt = dt * 0.001 * this.timeScale;
                 scaledDt = Math.min(scaledDt, this.dtMax * 3 * this.timeScale); // Limit to prevent unhealthy substepping
                 try {
-                    codeObj.update(scaledDt, world.elevatorInterfaces, world.floors);
+                    if (codeObj.update) // .update is optional
+                        codeObj.update(scaledDt, world.elevatorInterfaces, world.floors);
                 }
                 catch (e) {
                     this.handleUserCodeError(e);

@@ -1,5 +1,5 @@
-import { ObservableClass } from './movable.js';
-export class Floor extends ObservableClass {
+import { Observable } from './observable.js';
+export class Floor extends Observable {
     constructor(floorLevel, yPosition, errorHandler) {
         super();
         this.level = floorLevel;
@@ -15,15 +15,20 @@ export class Floor extends ObservableClass {
         //debugger;
         this.buttonStates_ = newstate;
     }
+    trigger(event, ...args) {
+        return super.trigger(event, ...args);
+    }
     // Note: TODO from original repo
     // TODO: Ideally the floor should have a facade where tryTrigger is done
     tryTrigger(event, ...args) {
         try {
+            // eliminate poison overload
             this.trigger(event, ...args);
         }
         catch (e) {
             this.errorHandler(e);
         }
+        return this;
     }
     pressUpButton() {
         var prev = this.buttonStates.up;
