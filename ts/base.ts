@@ -13,7 +13,7 @@ export interface FrameRequest {
 }
 export interface UserCodeObject {
 	init: (elevatorInterfaces: ElevatorInterface[], floors: Floor[]) => void;
-	update: (scaledDt: number, elevatorInterfaces: ElevatorInterface[], floors: Floor[]) => void;
+	update?: (scaledDt: number, elevatorInterfaces: ElevatorInterface[], floors: Floor[]) => void;
 }
 
 export function random(max: number, inclusive: boolean = true): number {

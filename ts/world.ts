@@ -285,7 +285,7 @@ export class WorldController extends ObservableClass {
 		this.isPaused = true;
 	}
 	
-	start(world: World, codeObj: UserCodeObject, animationFrameRequester: (cb: (t: number) => void) => void, autoStart: boolean) {
+	start(world: World, codeObj: UserCodeObject, animationFrameRequester: (cb: (t: number) => void) => void, autoStart?: boolean) {
 		this.isPaused = true;
 		let lastT: null | number = null;
 		let firstUpdate = true;
@@ -305,7 +305,8 @@ export class WorldController extends ObservableClass {
 				var scaledDt = dt * 0.001 * this.timeScale;
 				scaledDt = Math.min(scaledDt, this.dtMax * 3 * this.timeScale); // Limit to prevent unhealthy substepping
 				try {
-					codeObj.update(scaledDt, world.elevatorInterfaces, world.floors);
+					if(codeObj.update) // .update is optional
+						codeObj.update(scaledDt, world.elevatorInterfaces, world.floors);
 				} catch(e) { this.handleUserCodeError(e); }
 
 				while(scaledDt > 0.0 && !world.challengeEnded) {
