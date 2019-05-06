@@ -18,7 +18,7 @@ export interface Challenge {
 	condition: WinCondition,
 }
 
-function requireUserCountWithinTime(userCount: number, timeLimit: number): WinCondition {
+export function requireUserCountWithinTime(userCount: number, timeLimit: number): WinCondition {
 	return {
 		description: "Transport <span class='emphasis-color'>" + userCount + "</span> people in <span class='emphasis-color'>" + timeLimit.toFixed(0) + "</span> seconds or less",
 		evaluate: (world) => {
@@ -31,7 +31,7 @@ function requireUserCountWithinTime(userCount: number, timeLimit: number): WinCo
 	};
 };
 
-function requireUserCountWithMaxWaitTime(userCount: number, maxWaitTime: number): WinCondition {
+export function requireUserCountWithMaxWaitTime(userCount: number, maxWaitTime: number): WinCondition {
 	return {
 		description: "Transport <span class='emphasis-color'>" + userCount + "</span> people and let no one wait more than <span class='emphasis-color'>" + maxWaitTime.toFixed(1) + "</span> seconds",
 		evaluate: (world) => {
@@ -44,7 +44,7 @@ function requireUserCountWithMaxWaitTime(userCount: number, maxWaitTime: number)
 	};
 };
 
-function requireUserCountWithinTimeWithMaxWaitTime(userCount: number, timeLimit: number, maxWaitTime: number): WinCondition {
+export function requireUserCountWithinTimeWithMaxWaitTime(userCount: number, timeLimit: number, maxWaitTime: number): WinCondition {
 	return {
 	   description: "Transport <span class='emphasis-color'>" + userCount + "</span> people in <span class='emphasis-color'>" + timeLimit.toFixed(0) + "</span> seconds or less and let no one wait more than <span class='emphasis-color'>" + maxWaitTime.toFixed(1) + "</span> seconds",
 	   evaluate: (world) => {
@@ -57,7 +57,7 @@ function requireUserCountWithinTimeWithMaxWaitTime(userCount: number, timeLimit:
 	};
 };
 
-function requireUserCountWithinMoves(userCount: number, moveLimit: number): WinCondition {
+export function requireUserCountWithinMoves(userCount: number, moveLimit: number): WinCondition {
 	return {
 		description: "Transport <span class='emphasis-color'>" + userCount + "</span> people using <span class='emphasis-color'>" + moveLimit + "</span> elevator moves or less",
 		evaluate: (world) => {
@@ -70,7 +70,7 @@ function requireUserCountWithinMoves(userCount: number, moveLimit: number): WinC
 	};
 };
 
-function requireDemo(): WinCondition {
+export function requireDemo(): WinCondition {
 	return {
 		description: "Perpetual demo",
 		evaluate: () => null,
