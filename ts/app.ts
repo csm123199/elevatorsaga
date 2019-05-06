@@ -6,7 +6,7 @@ declare const riot: typeof import('riot')
 declare const _: typeof import('lodash')
 declare const CodeMirror: typeof import('codemirror')
 import { getCodeObjFromCode, UserCodeObject } from './base.js'
-import { WorldController, WorldCreator } from './world.js'
+import { WorldController, WorldCreator, World } from './world.js'
 import { Observable } from './riot_types.js';
 import { ObservableClass } from './movable.js';
 import { challenges } from './challenges.js';
@@ -135,7 +135,7 @@ function createParamsUrl(current: Record<string, string>, overrides: Record<stri
 
 
 
-$(function() {
+function onPageLoad() {
 	var tsKey = "elevatorTimeScale";
 	var editor = createEditor();
 
@@ -156,57 +156,89 @@ $(function() {
 	var feedbackTempl = document.getElementById("feedback-template")!.innerHTML.trim();
 	var codeStatusTempl = document.getElementById("codestatus-template")!.innerHTML.trim();
 
-	var app = riot.observable({}) as any;
-	//app.worldController = createWorldController(1.0 / 60.0);
-	app.worldController = new WorldController(1.0 / 60.0);
-	app.worldController.on("usercode_error", function(e) {
+	class ElevatorSagaApp extends ObservableClass {
+		worldController: WorldController;
+		worldCreator: WorldCreator;
+		world?: World;
+		currentChallengeIndex: number;
+		constructor() {
+			super();
+			this.worldController = new WorldController(1.0 / 60.0);
+			this.worldController.on("usercode_error", function(e) {
 		console.log("World raised code error", e);
 		editor.trigger("usercode_error", e);
 	});
 
-	console.log(app.worldController);
-	app.worldCreator = new WorldCreator();
-	//app.worldCreator = createWorldCreator();
-	app.world = undefined;
+			console.log(this.worldController);
+			this.worldCreator = new WorldCreator();
+			this.world = undefined;
+			this.currentChallengeIndex = 0;
 
-	app.currentChallengeIndex = 0;
-
-	app.startStopOrRestart = function() {
-		if(app.world.challengeEnded) {
-			app.startChallenge(app.currentChallengeIndex);
+			this.registerEditorEvents();
+		}
+		registerEditorEvents() {
+			editor.on("apply_code", () => {
+				app.startChallenge(this.currentChallengeIndex, true);
+			});
+			editor.on("code_success", () => {
+				presentCodeStatus($codestatus, codeStatusTempl);
+			});
+			editor.on("usercode_error", (error) => {
+				presentCodeStatus($codestatus, codeStatusTempl, error);
+			});
+			editor.on("change", () => {
+				$("#fitness_message").addClass("faded");
+				var codeStr = editor.getCode();
+				// fitnessSuite(codeStr, true, function(results) {
+				//     var message = "";
+				//     if(!results.error) {
+				//         message = "Fitness avg wait times: " + _.map(results, function(r){ return r.options.description + ": " + r.result.avgWaitTime.toPrecision(3) + "s" }).join("&nbsp&nbsp&nbsp");
+				//     } else {
+				//         message = "Could not compute fitness due to error: " + results.error;
+				//     }
+				//     $("#fitness_message").html(message).removeClass("faded");
+				// });
+			});
+			editor.trigger("change");
+		}
+		startStopOrRestart() {
+			if(this.world!.challengeEnded) {
+				this.startChallenge(this.currentChallengeIndex);
 		} else {
-			app.worldController.setPaused(!app.worldController.isPaused);
+				this.worldController.setPaused(!this.worldController.isPaused);
 		}
 	};
 
-	app.startChallenge = function(challengeIndex, autoStart) {
-		if(typeof app.world !== "undefined") {
-			app.world.unWind();
+		startChallenge(challengeIndex: number, autoStart?: boolean) {
+			if(typeof this.world !== "undefined") {
+				this.world.unWind();
 			// TODO: Investigate if memory leaks happen here
 		}
-		app.currentChallengeIndex = challengeIndex;
-		app.world = app.worldCreator.createWorld(challenges[challengeIndex].options);
-		(window as any).world = app.world;
+			this.currentChallengeIndex = challengeIndex;
+			this.world = this.worldCreator.createWorld(challenges[challengeIndex].options);
+			(window as any).world = this.world;
 
 		clearAll([$world, $feedback]);
-		presentStats($stats, app.world);
-		presentChallenge($challenge, challenges[challengeIndex], app, app.world, app.worldController, challengeIndex + 1, challengeTempl);
-		presentWorld($world, app.world, floorTempl, elevatorTempl, elevatorButtonTempl, userTempl);
+			presentStats($stats, this.world);
+			presentChallenge($challenge, challenges[challengeIndex], this, this.world, this.worldController, challengeIndex + 1, challengeTempl);
+			presentWorld($world, this.world, floorTempl, elevatorTempl, elevatorButtonTempl, userTempl);
 
-		app.worldController.on("timescale_changed", function() {
-			localStorage.setItem(tsKey, app.worldController.timeScale);
-			presentChallenge($challenge, challenges[challengeIndex], app, app.world, app.worldController, challengeIndex + 1, challengeTempl);
+			this.worldController.on("timescale_changed", () => {
+				localStorage.setItem(tsKey, app.worldController.timeScale.toString());
+				presentChallenge($challenge, challenges[challengeIndex], this, this.world, this.worldController, challengeIndex + 1, challengeTempl);
 		});
 
-		app.world.on("stats_changed", function() {
-			var challengeStatus = challenges[challengeIndex].condition.evaluate(app.world);
+			this.world.on("stats_changed", () => {
+				var challengeStatus = challenges[challengeIndex].condition.evaluate(this.world!);
 			if(challengeStatus !== null) {
-				app.world.challengeEnded = true;
-				app.worldController.setPaused(true);
+					this.world!.challengeEnded = true;
+					this.worldController.setPaused(true);
 				if(challengeStatus) {
-					presentFeedback($feedback, feedbackTempl, app.world, "Success!", "Challenge completed", createParamsUrl(params, { challenge: (challengeIndex + 2)}));
+						presentFeedback($feedback, feedbackTempl, this.world, "Success!", "Challenge completed", createParamsUrl(params, {
+							challenge: (challengeIndex + 2).toString()
+						}));
 				} else {
-					presentFeedback($feedback, feedbackTempl, app.world, "Challenge failed", "Maybe your program needs an improvement?", "");
+						presentFeedback($feedback, feedbackTempl, this.world, "Challenge failed", "Maybe your program needs an improvement?", "");
 				}
 			}
 		});
@@ -215,30 +247,10 @@ $(function() {
 		console.log("Starting...");
 		(app.worldController as WorldController).start(app.world, codeObj, window.requestAnimationFrame, autoStart);
 	};
+	}
 
-	editor.on("apply_code", function() {
-		app.startChallenge(app.currentChallengeIndex, true);
-	});
-	editor.on("code_success", function() {
-		presentCodeStatus($codestatus, codeStatusTempl);
-	});
-	editor.on("usercode_error", function(error) {
-		presentCodeStatus($codestatus, codeStatusTempl, error);
-	});
-	editor.on("change", function() {
-		$("#fitness_message").addClass("faded");
-		var codeStr = editor.getCode();
-		// fitnessSuite(codeStr, true, function(results) {
-		//     var message = "";
-		//     if(!results.error) {
-		//         message = "Fitness avg wait times: " + _.map(results, function(r){ return r.options.description + ": " + r.result.avgWaitTime.toPrecision(3) + "s" }).join("&nbsp&nbsp&nbsp");
-		//     } else {
-		//         message = "Could not compute fitness due to error: " + results.error;
-		//     }
-		//     $("#fitness_message").html(message).removeClass("faded");
-		// });
-	});
-	editor.trigger("change");
+	//var app = riot.observable({}) as any;
+	let app = new ElevatorSagaApp();
 
 	(riot as any).route((path) => {
 		params = _.reduce(path.split(","), function(result, p) {
@@ -269,4 +281,5 @@ $(function() {
 		app.worldController.setTimeScale(timeScale);
 		app.startChallenge(requestedChallenge, autoStart);
 	});
-});
+}
+$(onPageLoad);
