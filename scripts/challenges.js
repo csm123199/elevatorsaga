@@ -1,4 +1,4 @@
-function requireUserCountWithinTime(userCount, timeLimit) {
+export function requireUserCountWithinTime(userCount, timeLimit) {
     return {
         description: "Transport <span class='emphasis-color'>" + userCount + "</span> people in <span class='emphasis-color'>" + timeLimit.toFixed(0) + "</span> seconds or less",
         evaluate: (world) => {
@@ -12,7 +12,7 @@ function requireUserCountWithinTime(userCount, timeLimit) {
     };
 }
 ;
-function requireUserCountWithMaxWaitTime(userCount, maxWaitTime) {
+export function requireUserCountWithMaxWaitTime(userCount, maxWaitTime) {
     return {
         description: "Transport <span class='emphasis-color'>" + userCount + "</span> people and let no one wait more than <span class='emphasis-color'>" + maxWaitTime.toFixed(1) + "</span> seconds",
         evaluate: (world) => {
@@ -26,7 +26,7 @@ function requireUserCountWithMaxWaitTime(userCount, maxWaitTime) {
     };
 }
 ;
-function requireUserCountWithinTimeWithMaxWaitTime(userCount, timeLimit, maxWaitTime) {
+export function requireUserCountWithinTimeWithMaxWaitTime(userCount, timeLimit, maxWaitTime) {
     return {
         description: "Transport <span class='emphasis-color'>" + userCount + "</span> people in <span class='emphasis-color'>" + timeLimit.toFixed(0) + "</span> seconds or less and let no one wait more than <span class='emphasis-color'>" + maxWaitTime.toFixed(1) + "</span> seconds",
         evaluate: (world) => {
@@ -40,7 +40,7 @@ function requireUserCountWithinTimeWithMaxWaitTime(userCount, timeLimit, maxWait
     };
 }
 ;
-function requireUserCountWithinMoves(userCount, moveLimit) {
+export function requireUserCountWithinMoves(userCount, moveLimit) {
     return {
         description: "Transport <span class='emphasis-color'>" + userCount + "</span> people using <span class='emphasis-color'>" + moveLimit + "</span> elevator moves or less",
         evaluate: (world) => {
@@ -54,7 +54,7 @@ function requireUserCountWithinMoves(userCount, moveLimit) {
     };
 }
 ;
-function requireDemo() {
+export function requireDemo() {
     return {
         description: "Perpetual demo",
         evaluate: () => null,

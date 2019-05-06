@@ -47,7 +47,7 @@ export function accelerationNeededToAchieveChangeDistance(currentSpeed, targetSp
 }
 ;
 // Fake frame requester helper used for testing and fitness simulations
-function createFrameRequester(timeStep) {
+export function createFrameRequester(timeStep) {
     let currentCb = null;
     let requester = {
         currentT: 0.0,
