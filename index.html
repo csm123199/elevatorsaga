@@ -85,53 +85,46 @@
 		<h5 class="error" style="display: {errorDisplay}"><i class="fa fa-warning error-color"></i> There is a problem with your code: {errorMessage}</h5>
 	</script>
 
-	<script type="text/plain" id="default-elev-implementation">
-{
-	init: function(elevators, floors) {
-		var elevator = elevators[0]; // Let's use the first elevator
+	<!-- Empty source attribute makes browsers ignore contained JS (but editors still give syntax highlighting) -->
+	<script type="text/javascript" id="default-elev-implementation" src="">
+export function init(elevators, floors) {
+	var elevator = elevators[0]; // Let's use the first elevator
 
-		// Whenever the elevator is idle (has no more queued destinations) ...
-		elevator.on("idle", function() {
-			// let's go to all the floors (or did we forget one?)
-			elevator.goToFloor(0);
-			elevator.goToFloor(1);
-		});
-	},
-	update: function(dt, elevators, floors) {
-		// We normally don't need to do anything here
-	}
+	// Whenever the elevator is idle (has no more queued destinations) ...
+	elevator.on("idle", function() {
+		// let's go to all the floors (or did we forget one?)
+		elevator.goToFloor(0);
+		elevator.goToFloor(1);
+	});
+}
+export function update(dt, elevators, floors) {
+	// We normally don't need to do anything here
 }
 	</script>
-	<script type="text/plain" id="devtest-elev-implementation">
-{
-	init: function(elevators, floors) {
-		var selectElevatorForFloorPickup = function(floorNum) {
-			return _.max(elevators, function(e) {
-				return (_.contains(e.destinationQueue, floorNum) ? 4 : 0) +
-					(-e.destinationQueue.length*e.destinationQueue.length) +
-					(-e.loadFactor()*e.loadFactor() * 3);
-			});
-		};
+	<script type="text/javascript" id="devtest-elev-implementation" src="">
+export function init(elevators, floors) {
+	function selectElevatorForFloorPickup(floorNum) {
+		return _.max(elevators, function(e) {
+			return (_.contains(e.destinationQueue, floorNum) ? 4 : 0) +
+				(-e.destinationQueue.length*e.destinationQueue.length) +
+				(-e.loadFactor()*e.loadFactor() * 3);
+		});
+	};
 
-		_.each(floors, function(floor) {
-			floor.on("down_button_pressed up_button_pressed", function() {
-				var elevator = selectElevatorForFloorPickup(floor.level);
-				if(!_.contains(elevator.destinationQueue, floor.level)) {
-					elevator.goToFloor(floor.level);
-				}
-			});
+	floors.forEach(floor => {
+		floor.on("down_button_pressed up_button_pressed", function() {
+			var elevator = selectElevatorForFloorPickup(floor.level);
+			if(!_.contains(elevator.destinationQueue, floor.level)) {
+				elevator.goToFloor(floor.level);
+			}
 		});
-		_.each(elevators, function(elevator) {
-			elevator.on("floor_button_pressed", function(floorNum) {
-				elevator.goToFloor(floorNum);
-			});
-			elevator.on("idle", function() {
-				elevator.goToFloor(0);
-			});
-		});
-	},
-	update: function(dt, elevators, floors) {
-	}
+	});
+	elevators.forEach(elevator => {
+		elevator.on("floor_button_pressed", floorNum => elevator.goToFloor(floorNum));
+		elevator.on("idle", () => elevator.goToFloor(0));
+	});
+}
+export function update(dt, elevators, floors) {
 }
 	</script>
 
