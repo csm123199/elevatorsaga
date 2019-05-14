@@ -17,6 +17,12 @@
 	<script type="text/javascript" src="libs/codemirror/addon/edit/closebrackets.js"></script>
 	<script type="text/javascript" src="libs/codemirror/mode/javascript/javascript.js"></script>
 
+	<link rel="stylesheet" data-name="vs/editor/editor.main" href="../node_modules/monaco-editor/min/vs/editor/editor.main.css">
+	<script>var require = { paths: { 'vs': '../node_modules/monaco-editor/min/vs' } };</script>
+	<script type="text/javascript" src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+	<script type="text/javascript" src="../node_modules/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+	<script type="text/javascript" src="../node_modules/monaco-editor/min/vs/editor/editor.main.js"></script>
+
 	<script type="text/javascript" src="libs/unobservable.js"></script>
 
 	
@@ -164,6 +170,7 @@ export function update(dt, elevators, floors) {
 		<div class="code">
 			<textarea name="Code" id="code"></textarea>
 		</div>
+		<div class="code" id="code-monaco" data-lang="javascript" style="height:300px;border:1px solid grey; margin:5px 0px 5px"></div>
 		<button id="button_reset" style="float: left">Reset</button>
 		<button id="button_resetundo" style="float: left">Undo reset</button>
 		<button id="button_apply" style="float: right">Apply</button>

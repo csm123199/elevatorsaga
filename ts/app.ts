@@ -10,6 +10,7 @@ import { Observable } from './observable.js';
 import { challenges } from './challenges.js';
 import { CodeEditor } from './editors/common.js';
 import { CodeMirrorEditor } from './editors/codemirror.js';
+import { MonacoEditor } from './editors/monaco.js';
 
 const KEY_LOCAL_STORAGE = 'elevatorCrushCode_v5';
 const KEY_TIMESCALE = "elevatorTimeScale";
@@ -30,8 +31,16 @@ interface PresentationElements {
 	codestatus: JQuery<HTMLElement>,
 }
 
-function createEditor(): CodeEditor {
-	return new CodeMirrorEditor(document.getElementById("code") as HTMLTextAreaElement, KEY_LOCAL_STORAGE);
+function createEditor(kind: "codemirror" | "monaco"): CodeEditor {
+	if(kind === 'codemirror') {
+		document.getElementById('code-monaco')!.hidden = true;
+		return new CodeMirrorEditor(document.getElementById("code") as HTMLTextAreaElement, KEY_LOCAL_STORAGE);
+	} else if(kind === 'monaco') {
+		document.getElementById('code')!.hidden = true;
+		return new MonacoEditor(document.getElementById("code-monaco")!, KEY_LOCAL_STORAGE);
+	} else {
+		throw new Error('Unknown editor type! (' + kind + ')')
+	}
 };
 
 function createParamsUrl(current: Record<string, string>, overrides: Record<string, string>): string {
@@ -233,7 +242,7 @@ class ElevatorSagaApp extends Observable {
 	}
 }
 function onPageLoad() {
-	var editor = createEditor();
+	var editor = createEditor('monaco');
 	let app = new ElevatorSagaApp(editor, getPresentationElements(), getTemplates());
 
 	const path = document.URL.includes('?') ? document.URL.split('?')[1] : ''
