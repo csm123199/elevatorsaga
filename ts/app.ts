@@ -31,6 +31,129 @@ interface PresentationElements {
 	codestatus: JQuery<HTMLElement>,
 }
 
+namespace GameStartOptionsManager {
+	export interface GameStartOptions {
+		challengeIndex: number;
+		autostart: boolean;
+		timescale: number;
+		fullscreen: boolean;
+		devtest: boolean;
+	}
+}
+
+class GameStartOptionsManager {
+	private holder: GameStartOptionsManager.GameStartOptions;
+
+	private static DEFAULT_OPTS = {
+		challengeIndex: 0,
+		autostart: false,
+		timescale: 2,
+		fullscreen: false,
+		devtest: false,
+	}
+
+	constructor(opts?: Partial<GameStartOptionsManager.GameStartOptions>) {
+		this.holder = { ...GameStartOptionsManager.DEFAULT_OPTS, ...opts };
+	}
+	static from(path: string): GameStartOptionsManager {
+		// Turn 'stringified options' into a Record<string, string>
+		// keys without a value have a value of ''
+		const params: Record<string, string> = path.split('&').reduce((paramObj: Record<string, string>, pair: string) => {
+			let match: RegExpMatchArray | null;
+			if(match = pair.match(/(\w+)=(\w+$)/)) {
+				let [whole, key, value] = match;
+				paramObj[key] = value;
+			} else if(match = pair.match(/(\w+)$/)) {
+				let [whole, key] = match;
+				paramObj[key] = '';
+			} else {
+				console.warn('Unknown key format: ' + pair);
+			}
+			return paramObj;
+		}, {});
+	
+		const appStartOpts: Partial<GameStartOptionsManager.GameStartOptions> = {}
+		
+		{ // Start with timescale pre-filled from localStorage, if existing
+			// if getItem(tsKey) returns null, parseFloat returns NaN, so null-assertion operator is safe
+			let parsed = parseFloat(localStorage.getItem(KEY_TIMESCALE)!);
+			if(Number.isFinite(parsed)) {
+				appStartOpts.timescale = parsed;
+			}
+		}
+		
+		// Parse hash options into appStartOpts
+		for(let [key, val] of Object.entries<string>(params)) {
+			if(key === "challengeIndex") {
+				let challengeIndex = Number.parseInt(val);
+				if(!Number.isFinite(challengeIndex) || challengeIndex < 1 || challengeIndex > challenges.length) {
+					console.warn("Invalid challenge index (Using default): ", challengeIndex);
+				} else {
+					appStartOpts.challengeIndex = challengeIndex;
+				}
+			} else if(key === "timescale") {
+				let timescale = Number.parseFloat(val);
+				if(!Number.isFinite(timescale) || timescale < 0) {
+					console.warn("Invalid timescale value (Using default): ", timescale);
+				} else {
+					appStartOpts.timescale = timescale;
+				}
+			} else if(key === "autostart" || key === "devtest" || key === "fullscreen") {
+				if(val !== '')
+					console.warn('Boolean key/value pair had a non-empty value! Shouldn\'t exist if false, should have no value if true');
+				
+				appStartOpts[key] = true;
+			} else {
+				console.warn('Encountered invalid hash key/value pair: ', JSON.stringify({ [key]: val }));
+			}
+		}
+	
+		return new GameStartOptionsManager(appStartOpts)
+	}
+	toString() {
+		// TODO: Is it our responsibility to prepend the hash?
+
+		let optStrs: string[] = [];
+		// push non-default keys into optStrs (this will later be reparsed in )
+		//let key: keyof GameStartOptionsManager.GameStartOptions;
+		let key: keyof GameStartOptionsManager.GameStartOptions;
+		for(key in this.holder) {
+			let value = this.holder[key];
+			if(value !== GameStartOptionsManager.DEFAULT_OPTS[key]) {
+				if(value === true) {
+					optStrs.push(key);
+				} else {
+					optStrs.push(key + '=' + value.toString());
+				}
+			}
+		}
+		return '#' + optStrs.join('&');
+	}
+	copy(): GameStartOptionsManager {
+		return new GameStartOptionsManager(this.holder);
+	}
+
+	// 'builder' style
+	setChallengeIndex(val: number): this { this.holder.challengeIndex = val; return this; }
+	setAutostart(val: boolean): this { this.holder.autostart = val; return this; }
+	setTimescale(val: number): this { this.holder.timescale = val; return this; }
+	setFullscreen(val: boolean): this { this.holder.fullscreen = val; return this; }
+	setDevtest(val: boolean): this { this.holder.devtest = val; return this; }
+
+	get challengeIndex(): number { return this.holder.challengeIndex; }
+	get autostart(): boolean { return this.holder.autostart; }
+	get timescale(): number { return this.holder.timescale; }
+	get fullscreen(): boolean { return this.holder.fullscreen; }
+	get devtest(): boolean { return this.holder.devtest; }
+
+	set challengeIndex(val: number) { this.holder.challengeIndex = val; }
+	set autostart(val: boolean) { this.holder.autostart = val; }
+	set timescale(val: number) { this.holder.timescale = val; }
+	set fullscreen(val: boolean) { this.holder.fullscreen = val; }
+	set devtest(val: boolean) { this.holder.devtest = val; }
+}
+
+
 function createEditor(kind: "codemirror" | "monaco"): CodeEditor {
 	if(kind === 'codemirror') {
 		document.getElementById('code-monaco')!.hidden = true;
@@ -43,14 +166,6 @@ function createEditor(kind: "codemirror" | "monaco"): CodeEditor {
 	}
 };
 
-function createParamsUrl(current: Record<string, string>, overrides: Record<string, string>): string {
-	return "#" + _.map(_.merge(current, overrides), function(val, key) {
-		return key + "=" + val;
-	}).join(",");
-};
-
-
-
 function getTemplates(): HTMLTemplates {
 	let partialTempls: Partial<HTMLTemplates> = {}
 
@@ -62,9 +177,6 @@ function getTemplates(): HTMLTemplates {
 		partialTempls[templName] = element.innerHTML.trim();
 	}
 
-	// Safe cast since will throw if anything fails
-	return partialTempls as HTMLTemplates;
-}
 function getPresentationElements(): PresentationElements {
 	//const selectors: { [name: keyof PresentationElements]: string } = {
 	const selectors: Record<keyof PresentationElements, string> = {
@@ -112,7 +224,10 @@ class ElevatorSagaApp extends Observable {
 	}
 	registerEditorEvents() {
 		this.editor.on("apply_code", () => {
-			this.startChallenge(this.currentChallengeIndex, true);
+			this.startChallenge(new GameStartOptionsManager({
+				challengeIndex: this.currentChallengeIndex,
+				autostart: true,
+			}));
 		});
 		this.editor.on("code_success", () => {
 			presentCodeStatus(this.elements.codestatus, this.templates.codestatus);
@@ -147,13 +262,19 @@ class ElevatorSagaApp extends Observable {
 	}
 	startStopOrRestart() {
 		if(this.world!.challengeEnded) {
-			this.startChallenge(this.currentChallengeIndex);
+			this.startChallenge(new GameStartOptionsManager({
+				challengeIndex: this.currentChallengeIndex,
+			}));
 		} else {
 			this.worldController.setPaused(!this.worldController.isPaused);
 		}
 	};
 
-	async startChallenge(challengeIndex: number, autoStart?: boolean, params: Record<string, string> = {}): Promise<void> {
+	async startChallenge(appStartOpts: GameStartOptionsManager): Promise<void> {
+		const authOpts = appStartOpts;
+		const challengeIndex = authOpts.challengeIndex;
+		const autoStart = authOpts.autostart;
+
 		if(typeof this.world !== "undefined") {
 			this.world.unWind();
 			// TODO: Investigate if memory leaks happen here
@@ -178,9 +299,14 @@ class ElevatorSagaApp extends Observable {
 				this.world!.challengeEnded = true;
 				this.worldController.setPaused(true);
 				if(challengeStatus) {
-					presentFeedback(this.elements.feedback, this.templates.feedback, this.world, "Success!", "Challenge completed", createParamsUrl(params, {
-						challenge: (challengeIndex + 2).toString()
-					}));
+					presentFeedback(
+						this.elements.feedback,
+						this.templates.feedback,
+						this.world,
+						"Success!",
+						"Challenge completed",
+						appStartOpts.copy().setChallengeIndex(challengeIndex + 2),
+					);
 				} else {
 					presentFeedback(this.elements.feedback, this.templates.feedback, this.world, "Challenge failed", "Maybe your program needs an improvement?", "");
 				}
@@ -199,40 +325,9 @@ class ElevatorSagaApp extends Observable {
 			this.editor.trigger("usercode_error", e);
 		}
 	};
-	async start(params: Record<string, string>) {
-		let requestedChallenge = 0;
-		let autoStart = false;
-		// if getItem(tsKey) returns null, parseFloat returns NaN (falsy) so timeScale = 2.0
-		let timeScale = parseFloat(localStorage.getItem(KEY_TIMESCALE)!) || 2.0;
-		
-		for(let [key, val] of Object.entries<string>(params)) {
-			switch(key) {
-				case "challenge":
-					requestedChallenge = _.parseInt(val) - 1;
-					if(requestedChallenge < 0 || requestedChallenge >= challenges.length) {
-						console.log("Invalid challenge index", requestedChallenge);
-						console.log("Defaulting to first challenge");
-						requestedChallenge = 0;
-					}
-					break;
-				case "autostart":
-					// False by default, set to true if this key exists (and isn't `false`)
-					autoStart = val === "false" ? false : true;
-					break;
-				case "timescale":
-					timeScale = parseFloat(val);
-					break;
-				case "devtest":
-					this.editor.codeText = $("#devtest-elev-implementation").text().trim();
-					break;
-				case "fullscreen":
-					makeDemoFullscreen();
-					break;
-			}
-		}
-
-		this.worldController.setTimeScale(timeScale);
-		return this.startChallenge(requestedChallenge, autoStart, params);
+	async start(appStartOpts: GameStartOptionsManager) {
+		this.worldController.setTimeScale(appStartOpts.timescale);
+		return this.startChallenge(appStartOpts);
 	}
 	
 	asModule(): Promise<UserCodeObject> {
@@ -245,16 +340,11 @@ function onPageLoad() {
 	var editor = createEditor('monaco');
 	let app = new ElevatorSagaApp(editor, getPresentationElements(), getTemplates());
 
-	const path = document.URL.includes('?') ? document.URL.split('?')[1] : ''
-	const params = path.split(',').reduce((paramObj: Record<string, string>, pair: string) => {
-		let match = pair.match(/(\w+)=(\w+$)/);
-		if(match !== null) {
-			let [whole, key, value] = match;
-			paramObj[key] = value;
-		}
-		return paramObj;
-	}, {});
+	(riot as any).route((path: string) => {
+		// Remove the starting hash (to make the option parser not have to care about it)
+		if(path.startsWith('#')) path = path.slice(1);
 
-	app.start(params)
+		app.start(GameStartOptionsManager.from(path));
+	});
 }
 $(onPageLoad);
