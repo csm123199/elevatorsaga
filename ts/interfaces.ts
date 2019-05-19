@@ -2,6 +2,28 @@ import { Observable } from "./observable.js";
 import { Elevator } from "./elevator.js";
 import { epsilonEquals, limitNumber, createBoolPassthroughFunction } from "./base.js";
 
+export interface ElevatorInterface {
+	// Poison .trigger so the user won't use this
+	trigger(event: never): this;
+	
+	on(event: "idle"): this;
+	on(event: "passing_floor", cb: (floorNum: number, direction: "up" | "down") => void): this;
+	on(event: "stopped_at_floor", cb: (floorNum: number) => void): this;
+	on(event: "floor_button_pressed", cb: (floorNum: number) => void): this;
+
+	one(event: "idle"): this;
+	one(event: "passing_floor", cb: (floorNum: number, direction: "up" | "down") => void): this;
+	one(event: "stopped_at_floor", cb: (floorNum: number) => void): this;
+	one(event: "floor_button_pressed", cb: (floorNum: number) => void): this;
+
+	off(event: "*"): this;
+	off(event: "idle"): this;
+	off(event: "passing_floor", cb: (floorNum: number, direction: "up" | "down") => void): this;
+	off(event: "stopped_at_floor", cb: (floorNum: number) => void): this;
+	off(event: "floor_button_pressed", cb: (floorNum: number) => void): this;
+	off(event: string, cb?: (...args: any[]) => void): this;
+}
+
 // Interface that hides actual elevator object behind a more robust facade,
 // while also exposing relevant events, and providing some helper queue
 // functions that allow programming without async logic.
@@ -49,7 +71,8 @@ export class ElevatorInterface extends Observable {
 	tryTrigger(event: "floor_button_pressed", floorNum: number): this;
 	tryTrigger(event: string, ...args: any[]): this {
 		try {
-			this.trigger(event, ...args);
+			// Try/catch since user code could attach handlers to this class
+			super.trigger(event, ...args);
 		} catch(e) {
 			this.errorHandler(e);
 		}

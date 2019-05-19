@@ -77,6 +77,18 @@ const defaultWorldOptions: WorldOptions = {
 	elevatorCount: 2,
 	spawnRate: 0.5
 }
+
+export interface World {
+	on(event: "new_user", cb: (user: User) => void): this;
+	on(event: "stats_changed", cb: () => void): this;
+	on(event: "stats_display_changed", cb: () => void): this;
+	on(event: "usercode_error", cb: (e: Error) => void): this;
+
+	trigger(event: "new_user", user: User): this;
+	trigger(event: "stats_changed"): this;
+	trigger(event: "stats_display_changed"): this;
+	trigger(event: "usercode_error", e: Error): this;
+}
 export class World extends Observable {
 	readonly creator: WorldCreator;
 	readonly floorHeight: number;
@@ -137,13 +149,13 @@ export class World extends Observable {
 
 		// This will cause elevators to "re-arrive" at floors if someone presses an
 		// appropriate button on the floor before the elevator has left.
-		this.floors.forEach(floors => 
-			floors.on("up_button_pressed down_button_pressed", this.handleButtonRepressing)
-		);
-
+		this.floors.forEach(floor => {
+			floor.on("up_button_pressed", () => this.handleButtonRepressing("up_button_pressed", floor))
+			floor.on("down_button_pressed", () => this.handleButtonRepressing("down_button_pressed", floor))
+		});
 	}
 
-	handleUserCodeError = (e: any) => {
+	handleUserCodeError = (e: Error) => {
 		this.trigger("usercode_error", e);
 	}
 
@@ -274,6 +286,13 @@ export class World extends Observable {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+export interface WorldController extends Observable {
+	on(event: "usercode_error", cb: (error: Error) => void): this;
+	on(event: "timescale_changed", cb: () => void): this;
+	trigger(event: "usercode_error", error: Error): this;
+	trigger(event: "timescale_changed"): this;
+}
+
 export class WorldController extends Observable {
 	timeScale: number;
 	isPaused: boolean;
@@ -291,7 +310,7 @@ export class WorldController extends Observable {
 		this.isPaused = true;
 		let lastT: null | number = null;
 		let firstUpdate = true;
-		world.on("usercode_error", this.handleUserCodeError);
+		world.on("usercode_error", (e: Error) => this.handleUserCodeError(e));
 		let updater = (t: number) => {
 			if(!this.isPaused && !world.challengeEnded && lastT !== null) {
 				if(firstUpdate) {
@@ -330,7 +349,7 @@ export class WorldController extends Observable {
 		animationFrameRequester(updater);
 	}
 
-	handleUserCodeError = (e) => {
+	handleUserCodeError(e: Error): void {
 		this.setPaused(true);
 		console.log("Usercode error on update", e);
 		this.trigger("usercode_error", e);

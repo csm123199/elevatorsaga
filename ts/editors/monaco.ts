@@ -3,7 +3,6 @@ import * as ts from "typescript";
 declare const monaco: typeof import('monaco-editor')
 import { Uri, languages, editor as meditor } from 'monaco-editor'; // Note: Must only import type definitions, or runtime crash!
 
-import { Observable } from '../observable.js'
 import { CodeEditorBase, debounce } from './common.js'
 
 const TS_COMPILER_OPTS = {
@@ -56,18 +55,6 @@ export class MonacoEditor extends CodeEditorBase {
 	focus(): void {
 		this.mco.focus();
 	}
-
-	/*
-	trigger(event: "change"): this;
-	trigger(event: "apply_code"): this;
-	trigger(event: "code_success"): this;
-	trigger(event: "usercode_error", error: any): this;
-
-	on(event: "change", cb: () => void): this;
-	on(event: "apply_code", cb: () => void): this;
-	on(event: "code_success", cb: () => void): this;
-	on(event: "usercode_error", cb: (error: any) => void): this;
-	*/
 
 	get codeText() {
 		return this.mco.getValue();

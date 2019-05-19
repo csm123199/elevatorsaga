@@ -210,8 +210,8 @@ class ElevatorSagaApp extends Observable {
 		this.elements = elements;
 		this.templates = templates;
 		this.worldController = new WorldController(1.0 / 60.0);
-		this.worldController.on("usercode_error", function(e) {
-			console.log("World raised code error", e);
+		this.worldController.on("usercode_error", (e: Error) => {
+			console.warn("World raised code error", e);
 			editor.trigger("usercode_error", e);
 		});
 		
@@ -232,7 +232,7 @@ class ElevatorSagaApp extends Observable {
 		this.editor.on("code_success", () => {
 			presentCodeStatus(this.elements.codestatus, this.templates.codestatus);
 		});
-		this.editor.on("usercode_error", (error) => {
+		this.editor.on("usercode_error", (error: Error) => {
 			try {
 				if(error instanceof Error && error.stack) {
 					// Remove the auto-inserted Module. for the user code

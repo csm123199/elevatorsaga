@@ -16,6 +16,21 @@ function newElevStateHandler(elevator: Elevator) {
 	elevator.handleNewState();
 }
 
+export interface Elevator {
+	trigger(event: "stopped", floor: number): this;
+	trigger(event: "indicatorstate_change", next_state: IndicatorState): this;
+	trigger(event: "floor_button_pressed", floorNumber: number): this;
+	trigger(event: "floor_buttons_changed", buttonStates: boolean[], floorNumber: number): this;
+	trigger(event: "stopped_at_floor", floorNumber: number): this;
+	trigger(event: "entrance_available", elevator: Elevator): this;
+	trigger(event: "exit_available", floorNumber: number, elevator: Elevator): this;
+	trigger(event: "passing_floor", floorBeingPassed: number, direction: "up" | "down"): this;
+	trigger(event: "new_current_floor", currentFloor: number): this;
+	
+	// extends Movable
+	trigger(event: "new_state", self: this): this;
+	trigger(event: "new_display_state", self: this): this;
+}
 export class Elevator extends Movable {
 	readonly ACCELERATION: number;
 	readonly DECELERATION: number;
@@ -75,22 +90,6 @@ export class Elevator extends Movable {
 			this.trigger("indicatorstate_change", {up: this.goingUpIndicator, down: this.goingDownIndicator});
 		});
 	}
-
-	trigger(event: "stopped", floor: number): this;
-	trigger(event: "indicatorstate_change", next_state: IndicatorState): this;
-	trigger(event: "floor_button_pressed", floorNumber: number): this;
-	trigger(event: "floor_buttons_changed", buttonStates: boolean[], floorNumber: number): this;
-	trigger(event: "stopped_at_floor", floorNumber: number): this;
-	trigger(event: "entrance_available", elevator: Elevator): this;
-	trigger(event: "exit_available", floorNumber: number, elevator: Elevator): this;
-	trigger(event: "passing_floor", floorBeingPassed: number, direction: "up" | "down"): this;
-	trigger(event: "new_current_floor", currentFloor: number): this;
-	trigger(event: "new_state", self: this): this; // Movable
-	trigger(event: "new_display_state", self: this): this; // Movable
-	trigger(event: string, ...args: any[]): this {
-		return (super.trigger as (e: string, ...args: any[]) => this)(event, ...args);
-	}
-
 
 	setFloorPosition(floor: number) {
 		let destination = this.getYPosOfFloor(floor);

@@ -6,6 +6,15 @@ import { Elevator } from './elevator.js'
 type Floor = any;
 export type UserDisplayType = "child" | "female" | "male";
 
+export interface User {
+	trigger(event: "removed"): this;
+	trigger(event: "entered_elevator", elevator: Elevator): this;
+	trigger(event: "exited_elevator", elevator: Elevator): this;
+
+	// extends Movable
+	trigger(event: "new_state", self: this): this; // Movable
+	trigger(event: "new_display_state", self: this): this; // Movable
+}
 export class User extends Movable {
 	readonly weight: number;
 	readonly displayType: UserDisplayType;
@@ -20,15 +29,6 @@ export class User extends Movable {
 		this.weight = weight;
 		this.displayType = displayType;
 		this.spawnTimestamp = spawnTimestamp;
-	}
-
-	trigger(event: "removed"): this;
-	trigger(event: "entered_elevator", elevator: Elevator): this;
-	trigger(event: "exited_elevator", elevator: Elevator): this;
-	trigger(event: "new_state", self: this): this; // Movable
-	trigger(event: "new_display_state", self: this): this; // Movable
-	trigger(event: string, ...args: any[]): this {
-		return (super.trigger as (e: string, ...args: any[]) => this)(event, ...args);
 	}
 
 	// TODO: floor definition

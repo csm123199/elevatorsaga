@@ -19,6 +19,10 @@ export let DEFAULT_INTERPOLATOR: Interpolator = coolInterpolate;
 
 const _tmpPosStorage: [number, number] = [0,0];
 
+export interface Movable {
+	trigger(event: "new_state", self: this): this;
+	trigger(event: "new_display_state", self: this): this;
+}
 export class Movable extends Observable {
 	movable: Movable;
 	x: number;
@@ -40,12 +44,6 @@ export class Movable extends Observable {
 		this.currentTask = null;
 
 		this.trigger('new_state', this);
-	}
-
-	trigger(event: "new_state", self: this): this;
-	trigger(event: "new_display_state", self: this): this;
-	trigger(event: string, ...args: any[]): this {
-		return super.trigger(event, ...args);
 	}
 
 	updateDisplayPosition(forceTrigger?: boolean) {

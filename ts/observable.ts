@@ -1,6 +1,6 @@
 
 declare const riot: typeof import('./riot_types');
-import { Observable as RiotObservable, ObservableCallback as RiotObservableCallback } from './riot_types'
+import { Observable as RiotObservable, ObservableCallback } from './riot_types'
 
 const LOG_EVENTS = false;
 const DEBUG_FILTER_BLACKLIST = ['stats_changed', 'stats_display_changed'];
@@ -36,19 +36,21 @@ export class Observable implements RiotObservable {
 	}
 
 	// There is no inheritable version of `observable()`.
-	on(event: string, callback: RiotObservableCallback): this { // look into super.on(...)
+	on(event: string, callback: ObservableCallback): this { // look into super.on(...)
 		if(LOG_EVENTS && !DEBUG_FILTER_BLACKLIST.some(v => event == v))
 			console.log(`[DEBUG] registering event handler on ${this.constructor.name}: ${event}`);
 		return this.asObservable.on(event, callback);
 	}
-	one(event: string, callback: RiotObservableCallback): this {
+	// Poison event handler since nothing uses it
+	one(event: never): this;
+	one(event: string, callback?: ObservableCallback): this {
 		return this.asObservable.one(event, callback);
 	}
 	/** Deregister all event handlers */
 	off(event: "*"): this;
 	/** Register an event handler for `event` */
-	off(event: string, callback: RiotObservableCallback): this;
-	off(event: string, callback?: RiotObservableCallback): this {
+	off(event: string, callback: ObservableCallback): this;
+	off(event: string, callback?: ObservableCallback): this {
 		return this.asObservable.off(event, callback);
 	}
 	trigger(event: string, ...args: any[]): this {
