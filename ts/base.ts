@@ -37,6 +37,13 @@ export function deprecationWarning(name: any): void {
 	console.warn("You are using a deprecated feature scheduled for removal: " + name);
 };
 
+export function objectFactory<T>(names: (keyof T)[], transform: (key: keyof T) => T[keyof T]) {
+	return names.reduce<Partial<T>>((obj, key: keyof T) => {
+		obj[key] = transform(key);
+		return obj;
+	}, {} as Partial<T>) as T;
+}
+
 export interface BoolGetterSetter<T> {
 	(val: boolean): T;
 	(): boolean;

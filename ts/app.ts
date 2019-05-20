@@ -4,7 +4,7 @@
 //declare const document: document;
 declare const riot: typeof import('riot')
 declare const _: typeof import('lodash')
-import { getCodeObjFromCode, UserCodeObject, USERCODE_MODULE_NAME } from './base.js'
+import { getCodeObjFromCode, UserCodeObject, USERCODE_MODULE_NAME, objectFactory } from './base.js'
 import { WorldController, WorldCreator, World } from './world.js'
 import { Observable } from './observable.js';
 import { challenges } from './challenges.js';
@@ -167,15 +167,14 @@ function createEditor(kind: "codemirror" | "monaco"): CodeEditor {
 };
 
 function getTemplates(): HTMLTemplates {
-	let partialTempls: Partial<HTMLTemplates> = {}
-
-	// note: use of TypeScript non-null assertion operator
-	for(let templName of ['floor', 'elevator', 'elevatorbutton', 'user', 'challenge', 'feedback', 'codestatus'] as (keyof HTMLTemplates)[]) {
-		let element = document.getElementById(templName + '-template');
+	let names: (keyof HTMLTemplates)[] = ['floor', 'elevator', 'elevatorbutton', 'user', 'challenge', 'feedback', 'codestatus'];
+	return objectFactory<HTMLTemplates>(names, key => {
+		let element = document.getElementById(key + '-template');
 		if(element === null)
-			throw new Error(`Unable to get element #${templName}-template !`)
-		partialTempls[templName] = element.innerHTML.trim();
-	}
+			throw new Error(`Unable to get element #${key}-template !`);
+		return element.innerHTML.trim();
+	});
+}
 
 function getPresentationElements(): PresentationElements {
 	//const selectors: { [name: keyof PresentationElements]: string } = {
@@ -305,7 +304,7 @@ class ElevatorSagaApp extends Observable {
 						this.world,
 						"Success!",
 						"Challenge completed",
-						appStartOpts.copy().setChallengeIndex(challengeIndex + 2),
+						appStartOpts.copy().setChallengeIndex(challengeIndex + 1),
 					);
 				} else {
 					presentFeedback(this.elements.feedback, this.templates.feedback, this.world, "Challenge failed", "Maybe your program needs an improvement?", "");
