@@ -26,5 +26,8 @@
     "@types/riot": "^3.6.2",
     "riot": "^3.13.2",
     "typescript": "^3.4.5"
+  },
+  "dependencies": {
+    "monaco-editor": "^0.17.0"
   }
 }
