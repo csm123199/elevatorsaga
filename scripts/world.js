@@ -130,7 +130,10 @@ export class World extends Observable {
         this.elevators.forEach(elevator => elevator.on("entrance_available", this.handleElevAvailability));
         // This will cause elevators to "re-arrive" at floors if someone presses an
         // appropriate button on the floor before the elevator has left.
-        this.floors.forEach(floors => floors.on("up_button_pressed down_button_pressed", this.handleButtonRepressing));
+        this.floors.forEach(floor => {
+            floor.on("up_button_pressed", () => this.handleButtonRepressing("up_button_pressed", floor));
+            floor.on("down_button_pressed", () => this.handleButtonRepressing("down_button_pressed", floor));
+        });
     }
     recalculateStats() {
         this.transportedPerSec = this.transportedCounter / this.elapsedTime;
@@ -203,20 +206,9 @@ export class World extends Observable {
         }
     }
 }
-// visual break
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export class WorldController extends Observable {
     constructor(dtMax) {
         super();
-        this.handleUserCodeError = (e) => {
-            this.setPaused(true);
-            console.log("Usercode error on update", e);
-            this.trigger("usercode_error", e);
-        };
         this.dtMax = dtMax;
         this.timeScale = 1.0;
         this.isPaused = true;
@@ -225,7 +217,7 @@ export class WorldController extends Observable {
         this.isPaused = true;
         let lastT = null;
         let firstUpdate = true;
-        world.on("usercode_error", this.handleUserCodeError);
+        world.on("usercode_error", (e) => this.handleUserCodeError(e));
         let updater = (t) => {
             if (!this.isPaused && !world.challengeEnded && lastT !== null) {
                 if (firstUpdate) {
@@ -266,6 +258,11 @@ export class WorldController extends Observable {
             this.setPaused(false);
         }
         animationFrameRequester(updater);
+    }
+    handleUserCodeError(e) {
+        this.setPaused(true);
+        console.log("Usercode error on update", e);
+        this.trigger("usercode_error", e);
     }
     setPaused(paused) {
         this.isPaused = paused;

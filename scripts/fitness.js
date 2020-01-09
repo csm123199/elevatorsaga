@@ -1,98 +1,129 @@
-"use strict";
-var requireNothing = function () {
+import { getCodeObjFromCode, createFrameRequester, objectFactory } from './base.js';
+import { WorldController, WorldCreator } from './world.js';
+function requireNothing() {
     return {
         description: "No requirement",
         evaluate: function () { return null; }
     };
-};
-var fitnessChallenges = [
+}
+;
+const fitnessChallenges = [
     { options: { description: "Small scenario", floorCount: 4, elevatorCount: 2, spawnRate: 0.6 }, condition: requireNothing() },
     { options: { description: "Medium scenario", floorCount: 6, elevatorCount: 3, spawnRate: 1.5, elevatorCapacities: [5] }, condition: requireNothing() },
     { options: { description: "Large scenario", floorCount: 18, elevatorCount: 6, spawnRate: 1.9, elevatorCapacities: [8] }, condition: requireNothing() }
 ];
 // Simulation without visualisation
 function calculateFitness(challenge, codeObj, stepSize, stepsToSimulate) {
-    var controller = createWorldController(stepSize);
-    var result = {};
-    var worldCreator = createWorldCreator();
-    var world = worldCreator.createWorld(challenge.options);
-    var frameRequester = createFrameRequester(stepSize);
-    controller.on("usercode_error", function (e) {
-        result.error = e;
+    const controller = new WorldController(stepSize);
+    let result = null;
+    const worldCreator = new WorldCreator();
+    const world = worldCreator.createWorld(challenge.options);
+    const frameRequester = createFrameRequester(stepSize);
+    controller.on("usercode_error", (e) => {
+        result = e;
     });
-    world.on("stats_changed", function () {
-        result.transportedPerSec = world.transportedPerSec;
-        result.avgWaitTime = world.avgWaitTime;
-        result.transportedCount = world.transportedCounter;
+    world.on("stats_changed", () => {
+        result = {
+            transportedPerSec: world.transportedPerSec,
+            avgWaitTime: world.avgWaitTime,
+            transportedCount: world.transportedCounter,
+        };
     });
     controller.start(world, codeObj, frameRequester.register, true);
-    for (var stepCount = 0; stepCount < stepsToSimulate && !controller.isPaused; stepCount++) {
+    for (let stepCount = 0; stepCount < stepsToSimulate && !controller.isPaused; stepCount++) {
         frameRequester.trigger();
     }
-    return result;
+    // Ignore type checkers insistance that the two callbacks aren't called during the execution flow
+    result = result;
+    if (result === null) {
+        throw new Error('Recieved null result from fitness test...');
+    }
+    else if (result instanceof Error) {
+        throw result;
+    }
+    else {
+        return result;
+    }
 }
 ;
+const pluck = (obj, key) => obj.map(v => v[key]);
 function makeAverageResult(results) {
-    var averagedResult = {};
-    _.forOwn(results[0].result, function (value, resultProperty) {
-        var sum = _.sum(_.pluck(_.pluck(results, "result"), resultProperty));
-        averagedResult[resultProperty] = sum / results.length;
+    let fitnessKeys = ["transportedPerSec", "avgWaitTime", "transportedCount"];
+    let averagedResult = objectFactory(fitnessKeys, (k) => {
+        var sum = results
+            .map(v => v.result[k])
+            .reduce((acc, v) => acc + v);
+        return sum / results.length;
     });
-    return { options: results[0].options, result: averagedResult };
+    return {
+        options: results[0].options,
+        result: averagedResult,
+    };
 }
 ;
-function doFitnessSuite(codeStr, runCount) {
-    try {
-        var codeObj = getCodeObjFromCode(codeStr);
+function times(count, iteratee) {
+    const elements = [];
+    for (let i = 0; i < count; i++) {
+        elements.push(iteratee(i));
     }
-    catch (e) {
-        return { error: "" + e };
-    }
+    return elements;
+}
+export async function doFitnessSuite(codeStr, runCount) {
+    // Can throw, allow to bubble up
+    let codeObj = await getCodeObjFromCode(codeStr);
     console.log("Fitness testing code", codeObj);
-    var error = null;
-    var testruns = [];
-    _.times(runCount, function () {
-        var results = _.map(fitnessChallenges, function (challenge) {
-            var fitness = calculateFitness(challenge, codeObj, 1000.0 / 60.0, 12000);
-            if (fitness.error) {
-                error = fitness.error;
-                return;
-            }
-            ;
-            return { options: challenge.options, result: fitness };
-        });
-        if (error) {
-            return;
-        }
-        testruns.push(results);
-    });
-    if (error) {
-        return { error: "" + error };
-    }
+    // testruns[runCount][fitnessChallenges.length]
+    // Can throw, allow to bubble up
+    const testruns = times(runCount, () => // Run runCount times
+     fitnessChallenges.map(challenge => ({
+        options: challenge.options,
+        result: calculateFitness(challenge, codeObj, 1000.0 / 60.0, 12000)
+    })));
     // Now do averaging over all properties for each challenge's test runs
-    var averagedResults = _.map(_.range(testruns[0].length), function (n) { return makeAverageResult(_.pluck(testruns, n)); });
+    const averagedResults = times(testruns[0].length, (n) => makeAverageResult(testruns.map(challenges => challenges[n])));
     return averagedResults;
 }
-function fitnessSuite(codeStr, preferWorker, callback) {
+// Returned promise may explictly reject if a test run throws or user code is invalid
+export async function fitnessSuite(codeStr, preferWorker) {
     if (!!Worker && preferWorker) {
         // Web workers are available, neat.
         try {
-            var w = new Worker("fitnessworker.js");
+            // Chrome doesn't support { type: "module" } without a flag yet - so this will probably error for a while
+            let w = new Worker("scripts/fitnessworker.js", { type: "module" });
+            //let w = new Worker("scripts/fitnessworker.js", { type: "classic" });
             w.postMessage(codeStr);
-            w.onmessage = function (msg) {
-                console.log("Got message from fitness worker", msg);
-                var results = msg.data;
-                callback(results);
-            };
-            return;
+            return new Promise((res, rej) => {
+                w.onerror = e => {
+                    let wwErr = new Error('WebWorker failure');
+                    wwErr.base = e;
+                    rej(wwErr);
+                };
+                w.onmessage = msg => {
+                    console.log("Got message from fitness worker", msg);
+                    if (Array.isArray(msg.data) && typeof msg.data[0] === "string") {
+                        let nerr = new Error();
+                        let [emsg, ename, estack] = msg.data;
+                        nerr.message = emsg;
+                        nerr.name = ename;
+                        nerr.stack = estack;
+                        rej(nerr); // Passthrough error
+                    }
+                    else if (Array.isArray(msg.data)) {
+                        res(msg.data); // Resolve with results
+                    }
+                    else {
+                        rej(new Error('Bad result from web worker!'));
+                    }
+                };
+            });
         }
         catch (e) {
-            console.log("Fitness worker creation failed, falling back to normal", e);
+            console.warn("Fitness worker creation failed, falling back to normal (error on next log entry):");
+            console.warn(e);
         }
     }
-    // Fall back do synch calculation without web worker
-    var results = doFitnessSuite(codeStr, 2);
-    callback(results);
+    // Fall back do sync calculation without web worker
+    return doFitnessSuite(codeStr, 2);
 }
 ;
 //# sourceMappingURL=fitness.js.map

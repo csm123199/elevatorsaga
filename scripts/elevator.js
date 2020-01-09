@@ -36,9 +36,6 @@ export class Elevator extends Movable {
             this.trigger("indicatorstate_change", { up: this.goingUpIndicator, down: this.goingDownIndicator });
         });
     }
-    trigger(event, ...args) {
-        return super.trigger(event, ...args);
-    }
     setFloorPosition(floor) {
         let destination = this.getYPosOfFloor(floor);
         this.currentFloor = floor;

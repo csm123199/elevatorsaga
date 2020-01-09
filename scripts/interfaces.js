@@ -38,7 +38,8 @@ export class ElevatorInterface extends Observable {
     }
     tryTrigger(event, ...args) {
         try {
-            this.trigger(event, ...args);
+            // Try/catch since user code could attach handlers to this class
+            super.trigger(event, ...args);
         }
         catch (e) {
             this.errorHandler(e);

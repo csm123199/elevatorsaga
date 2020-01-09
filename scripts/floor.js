@@ -15,15 +15,13 @@ export class Floor extends Observable {
         //debugger;
         this.buttonStates_ = newstate;
     }
-    trigger(event, ...args) {
-        return super.trigger(event, ...args);
-    }
     // Note: TODO from original repo
     // TODO: Ideally the floor should have a facade where tryTrigger is done
     tryTrigger(event, ...args) {
         try {
-            // eliminate poison overload
-            this.trigger(event, ...args);
+            // Use try/catch since user could attach to these handlers
+            // use super. to bypass poison overload
+            super.trigger(event, ...args);
         }
         catch (e) {
             this.errorHandler(e);

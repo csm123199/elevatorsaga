@@ -13,9 +13,6 @@ export class User extends Movable {
         this.displayType = displayType;
         this.spawnTimestamp = spawnTimestamp;
     }
-    trigger(event, ...args) {
-        return super.trigger(event, ...args);
-    }
     // TODO: floor definition
     appearOnFloor(floor, destinationFloorNum) {
         const floorPosY = floor.getSpawnPosY();

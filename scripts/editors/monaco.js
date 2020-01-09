@@ -1,18 +1,21 @@
 import { CodeEditorBase, debounce } from './common.js';
 const TS_COMPILER_OPTS = {
-    //allowJs: true,
     allowNonTsExtensions: true,
     inlineSourceMap: true,
     isolatedModules: true,
     module: monaco.languages.typescript.ModuleKind.ESNext,
     moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
     noImplicitAny: false,
-    //noLib: true,
+    allowJs: true,
+    noLib: true,
+    libs: ["esnext", "dom"],
+    //target: "esnext",
+    target: monaco.languages.typescript.ScriptTarget.ESNext,
     outFile: "UserCode.js",
     sourceRoot: "/",
     strict: true,
     //suppressOutputPathCheck: true, // Found on TS playground?
-    target: monaco.languages.typescript.ScriptTarget.ESNext,
+    //target: monaco.languages.typescript.ScriptTarget.ES2018,
     typeRoots: ["/"],
 };
 export class MonacoEditor extends CodeEditorBase {
@@ -40,17 +43,6 @@ export class MonacoEditor extends CodeEditorBase {
     focus() {
         this.mco.focus();
     }
-    /*
-    trigger(event: "change"): this;
-    trigger(event: "apply_code"): this;
-    trigger(event: "code_success"): this;
-    trigger(event: "usercode_error", error: any): this;
-
-    on(event: "change", cb: () => void): this;
-    on(event: "apply_code", cb: () => void): this;
-    on(event: "code_success", cb: () => void): this;
-    on(event: "usercode_error", cb: (error: any) => void): this;
-    */
     get codeText() {
         return this.mco.getValue();
     }

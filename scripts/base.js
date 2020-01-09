@@ -17,6 +17,12 @@ export function deprecationWarning(name) {
     console.warn("You are using a deprecated feature scheduled for removal: " + name);
 }
 ;
+export function objectFactory(names, transform) {
+    return names.reduce((obj, key) => {
+        obj[key] = transform(key);
+        return obj;
+    }, {});
+}
 ;
 // Returns function to set/get bool `obj[objPropertyName]` and (if setting) return `owner` otherwise return `obj[objPropertyName]
 export function createBoolPassthroughFunction(host, owner, prop) {

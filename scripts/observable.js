@@ -1,3 +1,7 @@
+//declare const riot: typeof import('./riot_types');
+//@ts-ignore
+import * as riot from './libs/riot.es6.js';
+const LOG_EVENTS = false;
 const DEBUG_FILTER_BLACKLIST = ['stats_changed', 'stats_display_changed'];
 export class Observable {
     constructor() {
@@ -25,7 +29,7 @@ export class Observable {
     }
     // There is no inheritable version of `observable()`.
     on(event, callback) {
-        if (!DEBUG_FILTER_BLACKLIST.some(v => event == v))
+        if (LOG_EVENTS && !DEBUG_FILTER_BLACKLIST.some(v => event == v))
             console.log(`[DEBUG] registering event handler on ${this.constructor.name}: ${event}`);
         return this.asObservable.on(event, callback);
     }
@@ -36,7 +40,7 @@ export class Observable {
         return this.asObservable.off(event, callback);
     }
     trigger(event, ...args) {
-        if (!DEBUG_FILTER_BLACKLIST.some(v => event == v))
+        if (LOG_EVENTS && !DEBUG_FILTER_BLACKLIST.some(v => event == v))
             console.log(`[DEBUG] event triggered ${this.constructor.name}: ${event}(${args.map(v => v.toString()).join()})`);
         return this.asObservable.trigger(event, ...args);
     }

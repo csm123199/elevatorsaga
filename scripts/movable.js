@@ -23,9 +23,6 @@ export class Movable extends Observable {
         this.currentTask = null;
         this.trigger('new_state', this);
     }
-    trigger(event, ...args) {
-        return super.trigger(event, ...args);
-    }
     updateDisplayPosition(forceTrigger) {
         this.getWorldPosition(_tmpPosStorage);
         var oldX = this.worldX;
