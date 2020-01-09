@@ -8,13 +8,16 @@ export interface WinCondition {
 	evaluate: (world: World) => null | boolean;
 }
 
+
+export interface ChallengeOptions {
+	description?: string,
+	floorCount: number,
+	elevatorCount: number,
+	elevatorCapacities?: number[],
+	spawnRate: number,
+}
 export interface Challenge {
-	options: {
-		floorCount: number,
-		elevatorCount: number,
-		elevatorCapacities?: number[],
-		spawnRate: number,
-	},
+	options: ChallengeOptions,
 	condition: WinCondition,
 }
 

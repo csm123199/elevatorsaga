@@ -2,18 +2,43 @@
 
 //import * as _ from 'lodash'
 //declare const document: document;
-declare const riot: typeof import('riot')
+
+//declare const riot: typeof import('./riot_types');
+//@ts-ignore
+import * as riot from './libs/riot.es6.js'
+
 declare const _: typeof import('lodash')
 import { getCodeObjFromCode, UserCodeObject, USERCODE_MODULE_NAME, objectFactory } from './base.js'
 import { WorldController, WorldCreator, World } from './world.js'
 import { Observable } from './observable.js';
 import { challenges } from './challenges.js';
+//import { fitnessSuite } from './fitness.js'
 import { CodeEditor } from './editors/common.js';
 import { CodeMirrorEditor } from './editors/codemirror.js';
 import { MonacoEditor } from './editors/monaco.js';
 
+// Note: type imports only here - code imports should be done dynamically through fitnessSuiteProm
+//   Using dynamic imports so users should hopefully not have to download this module
+import { TestRun } from './fitness.js';
+
 const KEY_LOCAL_STORAGE = 'elevatorCrushCode_v5';
 const KEY_TIMESCALE = "elevatorTimeScale";
+const RUN_FITNESS_SUITE = true;
+
+// NOP if fitness suite is false
+let fitnessSuiteProm: null | Promise<(typeof import('./fitness.js').fitnessSuite)> = null;
+
+async function fitnessSuite<T>(codeStr: string, preferWorker: boolean, cb: (testruns: TestRun[]) => Promise<T>): Promise<T | null> {
+	if(!RUN_FITNESS_SUITE) return null;
+	if(fitnessSuiteProm === null) {
+		fitnessSuiteProm = import('./fitness.js').then(mod => mod.fitnessSuite);
+	}
+
+	return fitnessSuiteProm
+		.then(fitnessSuite => fitnessSuite(codeStr, preferWorker))
+		.then(testruns => cb(testruns));
+}
+
 interface HTMLTemplates {
 	floor: string;
 	elevator: string;
@@ -247,19 +272,21 @@ class ElevatorSagaApp extends Observable {
 		this.editor.on("change", () => {
 			$("#fitness_message").addClass("faded");
 			var codeStr = this.editor.codeText;
-			// fitnessSuite(codeStr, true, function(results) {
-			//     var message = "";
-			//     if(!results.error) {
-			//         message = "Fitness avg wait times: " + _.map(results, function(r){ return r.options.description + ": " + r.result.avgWaitTime.toPrecision(3) + "s" }).join("&nbsp&nbsp&nbsp");
-			//     } else {
-			//         message = "Could not compute fitness due to error: " + results.error;
-			//     }
-			//     $("#fitness_message").html(message).removeClass("faded");
-			// });
+			fitnessSuite(codeStr, true, async (ptestruns) => {
+				let msg;
+				try {
+					msg = "Fitness avg wait times: " + ptestruns
+						.map((r) => r.options.description + ": " + r.result.avgWaitTime.toPrecision(3) + "s")
+						.join("&nbsp".repeat(3));
+				} catch(e) {
+					msg = "Could not compute fitness due to error: " + e.toString();
+				}
+				$("#fitness_message").html(msg).removeClass("faded");
+			});
 		});
 		this.editor.trigger("change");
 	}
-	startStopOrRestart() {
+	startStopOrRestart() { // Called in presenters.js
 		if(this.world!.challengeEnded) {
 			this.startChallenge(new GameStartOptionsManager({
 				challengeIndex: this.currentChallengeIndex,

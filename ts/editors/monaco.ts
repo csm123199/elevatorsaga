@@ -5,20 +5,23 @@ import { Uri, languages, editor as meditor } from 'monaco-editor'; // Note: Must
 
 import { CodeEditorBase, debounce } from './common.js'
 
-const TS_COMPILER_OPTS = {
-	//allowJs: true,
+const TS_COMPILER_OPTS: languages.typescript.CompilerOptions = {
 	allowNonTsExtensions: true,
 	inlineSourceMap: true,
 	isolatedModules: true,
 	module: monaco.languages.typescript.ModuleKind.ESNext,
 	moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
 	noImplicitAny: false,
-	//noLib: true,
+	allowJs: true,
+	noLib: true,
+	libs: ["esnext", "dom"],
+	//target: "esnext",
+	target: monaco.languages.typescript.ScriptTarget.ESNext,
 	outFile: "UserCode.js",
 	sourceRoot: "/",
 	strict: true,
 	//suppressOutputPathCheck: true, // Found on TS playground?
-	target: monaco.languages.typescript.ScriptTarget.ESNext,
+	//target: monaco.languages.typescript.ScriptTarget.ES2018,
 	typeRoots: ["/"],
 }
 

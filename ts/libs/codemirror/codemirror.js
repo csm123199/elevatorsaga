@@ -13,7 +13,8 @@
   else if (typeof define == "function" && define.amd) // AMD
     return define([], mod);
   else // Plain browser env
-    this.CodeMirror = mod();
+    //this.CodeMirror = mod();
+    window.CodeMirror = mod();
 })(function() {
   "use strict";
 

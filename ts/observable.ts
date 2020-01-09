@@ -1,5 +1,7 @@
 
-declare const riot: typeof import('./riot_types');
+//declare const riot: typeof import('./riot_types');
+//@ts-ignore
+import * as riot from './libs/riot.es6.js'
 import { Observable as RiotObservable, ObservableCallback } from './riot_types'
 
 const LOG_EVENTS = false;
