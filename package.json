@@ -24,10 +24,10 @@
     "@types/jquery": "^3.3.29",
     "@types/lodash": "^4.14.123",
     "@types/riot": "^3.6.2",
-    "riot": "^3.13.2",
     "typescript": "^3.4.5"
   },
   "dependencies": {
+    "riot": "^3.13.2",
     "monaco-editor": "^0.17.0"
   }
 }
