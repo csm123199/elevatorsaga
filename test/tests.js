@@ -1,3 +1,14 @@
+//@ts-check
+
+/// <reference types="@types/jasmine"/>
+
+import { requireUserCountWithMaxWaitTime, requireUserCountWithinTime, requireUserCountWithinMoves, requireUserCountWithinTimeWithMaxWaitTime } from '../scripts/challenges.js'
+import { Movable } from '../scripts/movable.js'
+import { User } from '../scripts/user.js'
+import { Elevator } from '../scripts/elevator.js'
+import { WorldController } from '../scripts/world.js'
+import { ElevatorInterface } from '../scripts/interfaces.js';
+import { getCodeObjFromCode, createFrameRequester, randomRange } from '../scripts/base.js';
 
 
 var timeForwarder = function(dt, stepSize, fn) {
@@ -28,6 +39,7 @@ describe("Elevator Saga", function() {
 			m = new Movable();
 		});
 		it("disallows incorrect creation", function() {
+			//@ts-ignore
 			var faultyCreation = function () { Movable(); };
 			expect(faultyCreation).toThrow();
 		});
@@ -113,8 +125,9 @@ describe("Elevator Saga", function() {
 		var frameRequester = null;
 		var DT_MAX = 1000.0 / 59;
 		beforeEach(function() {
-			controller = createWorldController(DT_MAX);
+			controller = new WorldController(DT_MAX);
 			fakeWorld = { update: function(dt) {}, init: function() {}, updateDisplayPositions: function() {}, trigger: function() {} };
+			//@ts-ignore
 			fakeWorld = riot.observable(fakeWorld);
 			fakeCodeObj = { init: function() {}, update: function() {} };
 			frameRequester = createFrameRequester(10.0);
@@ -217,13 +230,13 @@ describe("Elevator Saga", function() {
 		});
 
 		it("moves to floors specified", function() {
-			_.each(_.range(0, floorCount-1), function(floor) {
+			for(let floor = 0; floor < floorCount-1; floor++) {
 				e.goToFloor(floor);
 				timeForwarder(10.0, 0.015, function(dt) {e.update(dt); e.updateElevatorMovement(dt);});
 				var expectedY = (floorHeight * (floorCount-1)) - floorHeight*floor;
 				expect(e.y).toBe(expectedY);
 				expect(e.currentFloor).toBe(floor, "Floor num");
-			});
+			}
 		});
 
 		it("can change direction", function() {
@@ -336,18 +349,18 @@ describe("Elevator Saga", function() {
 		});
 
 		it("doesnt seem to overshoot when stopping at floors", function() {
-			_.each(_.range(60, 120, 2.32133), function(updatesPerSecond) {
+			for(let updatesPerSecond = 60; updatesPerSecond < 120; updatesPerSecond += 2.32133) {
 				var STEPSIZE = 1.0 / updatesPerSecond;
 				e.setFloorPosition(1);
 				e.goToFloor(3);
 				timeForwarder(5.0, STEPSIZE, function(dt) {
 					e.update(dt);
 					e.updateElevatorMovement(dt);
+					//@ts-ignore Not sure why toBeWithinRange isn't typed as valid - but not concerned since it works
 					expect(e.getExactCurrentFloor()).toBeWithinRange(1.0, 3.0, "(STEPSIZE is " + STEPSIZE + ")");
 				});
 				expect(e.getExactCurrentFloor()).toEqual(3.0);
-			});
-
+			}
 
 		});
 
@@ -361,7 +374,7 @@ describe("Elevator Saga", function() {
 			beforeEach(function() {
 				e =  new Elevator(1.5, 4, 40);
 				e.setFloorPosition(0);
-				elevInterface = asElevatorInterface({}, e, 4);
+				elevInterface = new ElevatorInterface(e, 4);
 			});
 
 			describe("events", function() {
@@ -450,11 +463,11 @@ describe("Elevator Saga", function() {
 			});
 
 			it("normalizes load factor", function() {
-				var fnNewUser = function(){ return {weight:_.random(55, 100)}; },
-					fnEnterElevator = function(user){ e.userEntering(user); };
-
-				_.chain(_.range(20)).map(fnNewUser).forEach(fnEnterElevator);
-				var load = elevInterface.loadFactor();
+				for(let i = 0; i < 20; i++) {
+					let mockUser = { weight: randomRange(55, 100) };
+					e.userEntering(mockUser);
+				}
+				let load = elevInterface.loadFactor();
 				expect(load >= 0 && load <= 1).toBeTruthy();
 			});
 
@@ -477,7 +490,7 @@ describe("Elevator Saga", function() {
 
 	describe("base", function() {
 		describe("getCodeObjFromCode", function() {
-			var testCode = "{init: function init() {}, update: function update() {}}";
+			var testCode = "export function init() {}; export function update() {}";
 			it("handles trailing whitespace", function() {
 				expect(getCodeObjFromCode(testCode + "\n")).toEqual(jasmine.any(Object));
 			});
