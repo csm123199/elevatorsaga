@@ -8,6 +8,7 @@
 import * as riot from './libs/riot.es6.js'
 
 declare const _: typeof import('lodash')
+import { clearAll, presentStats, presentWorld, presentChallenge, presentFeedback, presentCodeStatus } from './presenters.js'
 import { getCodeObjFromCode, UserCodeObject, USERCODE_MODULE_NAME, objectFactory } from './base.js'
 import { WorldController, WorldCreator, World } from './world.js'
 import { Observable } from './observable.js';
@@ -39,7 +40,7 @@ async function fitnessSuite<T>(codeStr: string, preferWorker: boolean, cb: (test
 		.then(testruns => cb(testruns));
 }
 
-interface HTMLTemplates {
+export interface HTMLTemplates {
 	floor: string;
 	elevator: string;
 	elevatorbutton: string;
@@ -218,7 +219,7 @@ function getPresentationElements(): PresentationElements {
 	}
 	return elements as PresentationElements;
 }
-class ElevatorSagaApp extends Observable {
+export class ElevatorSagaApp extends Observable {
 	editor: CodeEditor;
 	elements: PresentationElements;
 	templates: HTMLTemplates;
@@ -316,7 +317,7 @@ class ElevatorSagaApp extends Observable {
 
 		this.worldController.on("timescale_changed", () => {
 			localStorage.setItem(KEY_TIMESCALE, this.worldController.timeScale.toString());
-			presentChallenge(this.elements.challenge, challenges[challengeIndex], this, this.world, this.worldController, challengeIndex + 1, this.templates.challenge);
+			presentChallenge(this.elements.challenge, challenges[challengeIndex], this, this.world!, this.worldController, challengeIndex + 1, this.templates.challenge);
 		});
 
 		this.world.on("stats_changed", () => {

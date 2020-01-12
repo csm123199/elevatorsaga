@@ -1,51 +1,58 @@
 
-function clearAll($elems) {
-	_.each($elems, function($elem) {
-		$elem.empty();
-	});
-};
+import * as riot from './libs/riot.es6.js'
+//import observable from '@riotjs/observable'
+declare const _: typeof import('lodash')
+import { ElevatorSagaApp, HTMLTemplates } from './app.js';
+import { World, WorldController } from './world.js';
+import { Challenge } from './challenges.js';
 
 function setTransformPos(elem, x, y) {
-	var style = "translate(" + x + "px," + y + "px) translateZ(0)";
+	let style = "translate(" + x + "px," + y + "px) translateZ(0)";
 	elem.style.transform = style;
 	elem.style["-ms-transform"] = style;
 	elem.style["-webkit-transform"] = style;
 };
-
 function updateUserState($user, elem_user, user) {
 	setTransformPos(elem_user, user.worldX, user.worldY);
 	if(user.done) { $user.addClass("leaving"); }
 };
+function makeDemoFullscreen() {
+	$("body .container > *").not(".world").css("visibility", "hidden");
+	$("html, body, body .container, .world").css({width: "100%", margin: "0", "padding": 0});
+};
 
+export function clearAll<T extends JQuery<HTMLElement>>($elems: T[]) {
+	$elems.forEach($elem => $elem.empty());
+};
 
-function presentStats($parent, world) {
+export function presentStats($parent: JQuery<HTMLElement>, world: World) {
 
-	var elem_transportedcounter = $parent.find(".transportedcounter").get(0),
-		elem_elapsedtime = $parent.find(".elapsedtime").get(0),
-		elem_transportedpersec = $parent.find(".transportedpersec").get(0),
-		elem_avgwaittime = $parent.find(".avgwaittime").get(0),
-		elem_maxwaittime = $parent.find(".maxwaittime").get(0),
-		elem_movecount = $parent.find(".movecount").get(0);
+	let elem_transportedcounter = $parent.find(".transportedcounter").get(0);
+	let elem_elapsedtime = $parent.find(".elapsedtime").get(0);
+	let elem_transportedpersec = $parent.find(".transportedpersec").get(0);
+	let elem_avgwaittime = $parent.find(".avgwaittime").get(0);
+	let elem_maxwaittime = $parent.find(".maxwaittime").get(0);
+	let elem_movecount = $parent.find(".movecount").get(0);
 
 	world.on("stats_display_changed", function updateStats() {
-		elem_transportedcounter.textContent = world.transportedCounter;
+		elem_transportedcounter.textContent = world.transportedCounter.toString();
 		elem_elapsedtime.textContent = world.elapsedTime.toFixed(0) + "s";
 		elem_transportedpersec.textContent = world.transportedPerSec.toPrecision(3);
 		elem_avgwaittime.textContent = world.avgWaitTime.toFixed(1) + "s";
 		elem_maxwaittime.textContent = world.maxWaitTime.toFixed(1) + "s";
-		elem_movecount.textContent = world.moveCount;
+		elem_movecount.textContent = world.moveCount.toString();
 	});
 	world.trigger("stats_display_changed");
 };
 
-function presentChallenge($parent, challenge, app, world, worldController, challengeNum, challengeTempl) {
-	var $challenge = $(riot.render(challengeTempl, {
+export function presentChallenge($parent: JQuery<HTMLElement>, challenge: Challenge, app: ElevatorSagaApp, world: World, worldController: WorldController, challengeNum: number, challengeTempl: HTMLTemplates['challenge']) {
+	let $challenge = $(riot.render(challengeTempl, {
 		challenge: challenge,
 		num: challengeNum,
 		timeScale: worldController.timeScale.toFixed(0) + "x",
 		startButtonText: world.challengeEnded ? "<i class='fa fa-repeat'></i> Restart" : (worldController.isPaused ? "Start" : "Pause")
 	}));
-	$parent.html($challenge);
+	$parent.html($challenge as any);
 
 	$parent.find(".startstop").on("click", function() {
 		app.startStopOrRestart();
@@ -64,14 +71,14 @@ function presentChallenge($parent, challenge, app, world, worldController, chall
 	});
 };
 
-function presentFeedback($parent, feedbackTempl, world, title, message, url) {
+export function presentFeedback($parent, feedbackTempl, world, title, message, url) {
 	$parent.html(riot.render(feedbackTempl, {title: title, message: message, url: url, paddingTop: world.floors.length * world.floorHeight * 0.2}));
 	if(!url) {
 		$parent.find("a").remove();
 	}
 };
 
-function presentWorld($world, world, floorTempl, elevatorTempl, elevatorButtonTempl, userTempl) {
+export function presentWorld($world, world, floorTempl, elevatorTempl, elevatorButtonTempl, userTempl) {
 	$world.css("height", world.floorHeight * world.floors.length);
 
 	$world.append(_.map(world.floors, function(f) {
@@ -145,15 +152,12 @@ function presentWorld($world, world, floorTempl, elevatorTempl, elevatorButtonTe
 	});
 };
 
+export function presentCodeStatus($parent: JQuery<HTMLElement>, templ: string, error?: Error | string) {
+	if (error) console.warn('Code had an error: ', error);
 
-function presentCodeStatus($parent, templ, error) {
-	console.log(error);
 	let errorDisplay = error ? "block" : "none";
 	let successDisplay = error ? "none" : "block";
-	let errorMessage = error;
-	if(error && error.stack) {
-		errorMessage = error.stack;
-	}
+	let errorMessage: string = error instanceof Error ? (error.stack != null ? error.stack : error.message) : (error != null ? error : '');
 
 	// Use the brower's mechanisms to escape the user data
 	let dummyTag = document.createElement("div");
@@ -166,9 +170,4 @@ function presentCodeStatus($parent, templ, error) {
 	);
 	let rendered = riot.render(templ, { errorMessage, errorDisplay, successDisplay });
 	$parent.html(rendered); // $parent[0].innerHTML = rendered
-};
-
-function makeDemoFullscreen() {
-	$("body .container > *").not(".world").css("visibility", "hidden");
-	$("html, body, body .container, .world").css({width: "100%", margin: "0", "padding": 0});
 };
