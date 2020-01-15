@@ -1,6 +1,6 @@
-import { Observable } from "./observable.js";
-import { Elevator } from "./elevator.js";
-import { epsilonEquals, limitNumber, createBoolPassthroughFunction } from "./base.js";
+import { Observable } from "./observable";
+import { Elevator } from "./elevator";
+import { epsilonEquals, limitNumber, createBoolPassthroughFunction } from "./base";
 
 export interface ElevatorInterface {
 	// Poison .trigger so the user won't use this

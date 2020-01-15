@@ -2,13 +2,15 @@
 
 /// <reference types="@types/jasmine"/>
 
-import { requireUserCountWithMaxWaitTime, requireUserCountWithinTime, requireUserCountWithinMoves, requireUserCountWithinTimeWithMaxWaitTime } from '../scripts/challenges.js'
-import { Movable } from '../scripts/movable.js'
-import { User } from '../scripts/user.js'
-import { Elevator } from '../scripts/elevator.js'
-import { WorldController } from '../scripts/world.js'
-import { ElevatorInterface } from '../scripts/interfaces.js';
-import { getCodeObjFromCode, createFrameRequester, randomRange } from '../scripts/base.js';
+//import jasmine from 'jasmine';
+
+import { requireUserCountWithMaxWaitTime, requireUserCountWithinTime, requireUserCountWithinMoves, requireUserCountWithinTimeWithMaxWaitTime } from '../ts/challenges'
+import { Movable } from '../ts/movable'
+import { User } from '../ts/user'
+import { Elevator } from '../ts/elevator'
+import { WorldController } from '../ts/world'
+import { ElevatorInterface } from '../ts/interfaces';
+import { getCodeObjFromCode, createFrameRequester, randomRange } from '../ts/base';
 
 
 var timeForwarder = function(dt, stepSize, fn) {
@@ -55,7 +57,7 @@ describe("Elevator Saga", function() {
 		var u = null;
 
 		beforeEach(function() {
-			u = new User();
+			u = new User(0, "child", 0);
 		});
 		it("updates display position when told to", function() {
 			u.moveTo(1.0, 1.0);
@@ -374,7 +376,7 @@ describe("Elevator Saga", function() {
 			beforeEach(function() {
 				e =  new Elevator(1.5, 4, 40);
 				e.setFloorPosition(0);
-				elevInterface = new ElevatorInterface(e, 4);
+				elevInterface = new ElevatorInterface(e, 4, e => { throw e; });
 			});
 
 			describe("events", function() {

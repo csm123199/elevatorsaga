@@ -1,6 +1,6 @@
 
-import { Observable } from './observable.js'
-import { Elevator } from './elevator.js';
+import { Observable } from './observable'
+import { Elevator } from './elevator';
 
 type ButtonState = "" | "activated";
 interface ButtonStates {

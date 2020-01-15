@@ -7,32 +7,36 @@
 //@ts-ignore
 import * as riot from './libs/riot.es6.js'
 
-declare const _: typeof import('lodash')
-import { clearAll, presentStats, presentWorld, presentChallenge, presentFeedback, presentCodeStatus } from './presenters.js'
-import { getCodeObjFromCode, UserCodeObject, USERCODE_MODULE_NAME, objectFactory } from './base.js'
-import { WorldController, WorldCreator, World } from './world.js'
-import { Observable } from './observable.js';
-import { challenges } from './challenges.js';
-//import { fitnessSuite } from './fitness.js'
-import { CodeEditor } from './editors/common.js';
-import { CodeMirrorEditor } from './editors/codemirror.js';
-import { MonacoEditor } from './editors/monaco.js';
+
+//declare const _: typeof import('lodash')
+
+import * as _ from 'lodash';
+import { clearAll, presentStats, presentWorld, presentChallenge, presentFeedback, presentCodeStatus } from './presenters'
+import { getCodeObjFromCode, UserCodeObject, USERCODE_MODULE_NAME, objectFactory } from './base'
+import { WorldController, WorldCreator, World } from './world'
+import { Observable } from './observable';
+import { challenges } from './challenges';
+//import { fitnessSuite } from './fitwerness.js'
+import { CodeEditor } from './editors/common';
+import { CodeMirrorEditor } from './editors/codemirror';
+import { MonacoEditor } from './editors/monaco';
 
 // Note: type imports only here - code imports should be done dynamically through fitnessSuiteProm
 //   Using dynamic imports so users should hopefully not have to download this module
-import { TestRun } from './fitness.js';
+import { TestRun } from './fitness';
+import { isAssertionExpression } from 'typescript';
 
 const KEY_LOCAL_STORAGE = 'elevatorCrushCode_v5';
 const KEY_TIMESCALE = "elevatorTimeScale";
 const RUN_FITNESS_SUITE = true;
 
 // NOP if fitness suite is false
-let fitnessSuiteProm: null | Promise<(typeof import('./fitness.js').fitnessSuite)> = null;
+let fitnessSuiteProm: null | Promise<(typeof import('./fitness').fitnessSuite)> = null;
 
 async function fitnessSuite<T>(codeStr: string, preferWorker: boolean, cb: (testruns: TestRun[]) => Promise<T>): Promise<T | null> {
 	if(!RUN_FITNESS_SUITE) return null;
 	if(fitnessSuiteProm === null) {
-		fitnessSuiteProm = import('./fitness.js').then(mod => mod.fitnessSuite);
+		fitnessSuiteProm = import('./fitness').then(mod => mod.fitnessSuite);
 	}
 
 	return fitnessSuiteProm

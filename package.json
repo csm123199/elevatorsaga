@@ -5,8 +5,12 @@
   "directories": {
     "test": "test"
   },
+  "//_1": "Note that `npm run-script build` is best ran with NODE_ENV=development, in my experience",
+  "//_2": "Also each rootish monaco file must be listed here so it has a dependable path. If adjusting, edits may need to be made in `ts/editors/monaco.ts`",
+  "//_3": "`npx parcel watch` doesn't have --no-minify and it breaks without it so... use build instead.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "watch": "npx parcel watch index.html documentation.html test/index.html node_modules/monaco-editor/esm/vs/language/json/json.worker.js node_modules/monaco-editor/esm/vs/language/css/css.worker.js node_modules/monaco-editor/esm/vs/language/html/html.worker.js node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js node_modules/monaco-editor/esm/vs/editor/editor.worker.js",
+    "build": "npx parcel build --no-minify index.html documentation.html test/index.html node_modules/monaco-editor/esm/vs/language/json/json.worker.js node_modules/monaco-editor/esm/vs/language/css/css.worker.js node_modules/monaco-editor/esm/vs/language/html/html.worker.js node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js node_modules/monaco-editor/esm/vs/editor/editor.worker.js"
   },
   "repository": {
     "type": "git",
@@ -20,14 +24,20 @@
   "homepage": "https://github.com/csm123199/elevatorsaga#readme",
   "devDependencies": {
     "@types/codemirror": "0.0.74",
-    "@types/jasmine": "^3.3.12",
-    "@types/jquery": "^3.3.29",
-    "@types/lodash": "^4.14.123",
+    "@types/jasmine": "^3.5.0",
+    "@types/jquery": "^3.3.31",
+    "@types/lodash": "^4.14.149",
     "@types/riot": "^3.6.2",
-    "typescript": "^3.4.5"
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "parcel": "^1.12.4",
+    "typescript": "^3.7.4"
   },
   "dependencies": {
-    "riot": "^3.13.2",
-    "monaco-editor": "^0.17.0"
+    "@riotjs/observable": "file:../observable",
+    "jquery": "^2.1.1",
+    "lodash": "^4.17.15",
+    "monaco-editor": "^0.17.0",
+    "riot": "^3.13.2"
   }
 }

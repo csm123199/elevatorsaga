@@ -1,6 +1,6 @@
 
-import { Movable, linearInterpolate } from './movable.js'
-import { Elevator } from './elevator.js'
+import { Movable, linearInterpolate } from './movable'
+import { Elevator } from './elevator'
 
 // TODO: impl floor in TS
 type Floor = any;

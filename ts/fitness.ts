@@ -1,8 +1,9 @@
 
-declare const _: typeof import('lodash')
-import { getCodeObjFromCode, UserCodeObject, createFrameRequester, objectFactory } from './base.js'
-import { WorldController, WorldCreator } from './world.js'
-import { Challenge, WinCondition, ChallengeOptions } from './challenges.js'
+//declare const _: typeof import('lodash')
+import * as _ from 'lodash';
+import { getCodeObjFromCode, UserCodeObject, createFrameRequester, objectFactory } from './base'
+import { WorldController, WorldCreator } from './world'
+import { Challenge, WinCondition, ChallengeOptions } from './challenges'
 
 function requireNothing(): WinCondition {
 	return {
@@ -132,6 +133,7 @@ export async function fitnessSuite(codeStr: string, preferWorker: boolean): Prom
 				w.onerror = e => {
 					let wwErr = new Error('WebWorker failure');
 					(wwErr as any).base = e;
+					(window as any).lastErrorLol = wwErr;
 					rej(wwErr);
 				}
 				w.onmessage = msg => {

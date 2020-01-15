@@ -1,10 +1,12 @@
 
 import * as riot from './libs/riot.es6.js'
 //import observable from '@riotjs/observable'
-declare const _: typeof import('lodash')
-import { ElevatorSagaApp, HTMLTemplates } from './app.js';
-import { World, WorldController } from './world.js';
-import { Challenge } from './challenges.js';
+//declare const _: typeof import('lodash')
+import * as jQuery from 'jquery';
+import * as _ from 'lodash';
+import { ElevatorSagaApp, HTMLTemplates } from './app';
+import { World, WorldController } from './world';
+import { Challenge } from './challenges';
 
 function setTransformPos(elem, x, y) {
 	let style = "translate(" + x + "px," + y + "px) translateZ(0)";

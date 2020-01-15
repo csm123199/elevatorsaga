@@ -1,11 +1,11 @@
 
 
-import { UserCodeObject, random, randomRange } from './base.js'
-import { User, UserDisplayType } from './user.js'
-import { Floor } from './floor.js'
-import { Elevator } from './elevator.js'
-import { Observable } from './observable.js';
-import { ElevatorInterface } from './interfaces.js'
+import { UserCodeObject, random, randomRange } from './base'
+import { User, UserDisplayType } from './user'
+import { Floor } from './floor'
+import { Elevator } from './elevator'
+import { Observable } from './observable';
+import { ElevatorInterface } from './interfaces'
 
 export class WorldCreator {
 	createFloors(floorCount: number, floorHeight: number, errorHandler: (e: any) => void): Floor[] {

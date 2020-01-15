@@ -1,5 +1,5 @@
 
-import { Observable } from './observable.js'
+import { Observable } from './observable'
 
 type WithReturnType<T extends (...args: any) => any, RT> = T extends (...args: infer P) => RT ? (...args: P) => RT : never;
 

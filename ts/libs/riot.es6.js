@@ -1,5 +1,7 @@
 /* Riot 1.0.2, @license MIT, (c) 2014 Muut Inc + contributors */
 
+import $ from 'jquery';
+
 const riot = {};
 (function(riot) { "use strict";
 riot.observable = function(el) {

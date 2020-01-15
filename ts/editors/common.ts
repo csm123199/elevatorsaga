@@ -1,6 +1,7 @@
 
-import { Observable } from '../observable.js'
+import { Observable } from '../observable'
 
+// Note: previously lodash function
 export function debounce(cb: () => void, timeout_ms: number): () => void {
 	let count = 0;
 	

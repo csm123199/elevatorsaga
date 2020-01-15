@@ -6,7 +6,7 @@
 
 
 
-import { doFitnessSuite } from './fitness.js'
+import { doFitnessSuite } from './fitness'
 //declare var self: DedicatedWorkerGlobalScope;
 
 self.onmessage = async function(this: WindowEventHandlers, msg: MessageEvent) {

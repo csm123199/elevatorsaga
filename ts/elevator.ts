@@ -1,7 +1,7 @@
 
-import { limitNumber, distanceNeededToAchieveSpeed, accelerationNeededToAchieveChangeDistance, deprecationWarning, epsilonEquals } from './base.js'
-import { Movable } from './movable.js';
-import { User } from './user.js'
+import { limitNumber, distanceNeededToAchieveSpeed, accelerationNeededToAchieveChangeDistance, deprecationWarning, epsilonEquals } from './base'
+import { Movable } from './movable';
+import { User } from './user'
 
 interface UserSlot {
 	pos: [number, number];
@@ -54,7 +54,7 @@ export class Elevator extends Movable {
 	userSlots: UserSlot[];
 	width: number;
 
-	constructor(speedFloorsPerSec: number, floorCount: number, floorHeight: number, maxUsers: number) {
+	constructor(speedFloorsPerSec: number, floorCount: number, floorHeight: number, maxUsers?: number) {
 		super()
 	
 		this.ACCELERATION = floorHeight * 2.1;
@@ -62,7 +62,7 @@ export class Elevator extends Movable {
 		this.MAXSPEED = floorHeight * speedFloorsPerSec;
 		this.floorCount = floorCount;
 		this.floorHeight = floorHeight;
-		this.maxUsers = maxUsers || 4;
+		this.maxUsers = maxUsers != null ? maxUsers : 4;
 		this.destinationY = 0.0;
 		this.velocityY = 0.0;
 		// isMoving flag is needed when going to same floor again - need to re-raise events

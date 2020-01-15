@@ -1,6 +1,6 @@
 
-import { Floor } from './floor.js'
-import { ElevatorInterface } from './interfaces.js'
+import { Floor } from './floor'
+import { ElevatorInterface } from './interfaces'
 
 export const USERCODE_MODULE_NAME = 'UserCode';
 

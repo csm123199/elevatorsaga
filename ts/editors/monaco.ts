@@ -1,9 +1,48 @@
 
+
+
+(window as any).MonacoEnvironment = { getWorkerUrl };
+
 import * as ts from "typescript";
-declare const monaco: typeof import('monaco-editor')
+//declare const monaco: typeof import('monaco-editor')
+import * as monaco from 'monaco-editor';
 import { Uri, languages, editor as meditor } from 'monaco-editor'; // Note: Must only import type definitions, or runtime crash!
 
-import { CodeEditorBase, debounce } from './common.js'
+import { CodeEditorBase, debounce } from './common'
+
+function getWorkerUrl(moduleId, label) {
+	const prefix = './node_modules/monaco-editor/esm/vs/'
+	const suffix = '.worker.js'
+	const labels = {
+		'json': 'json',
+		'css': 'css',
+		'html': 'html',
+		'typescript': 'ts',
+		'javascript': 'ts',
+	};
+	if(label in labels) {
+		if(label == 'javascript') label = 'typescript';
+		return prefix + 'language/' + label + '/' + labels[label] + suffix;
+	} else {
+		console.warn(`Encountered unexpected label: ${JSON.stringify(label)}, returning editor path`);
+		return prefix + 'editor/editor' + suffix;
+	}
+	if (label === 'json') {
+		return './json.worker.bundle.js';
+	}
+	if (label === 'css') {
+		return './css.worker.bundle.js';
+	}
+	if (label === 'html') {
+		return './html.worker.bundle.js';
+	}
+	if (label === 'typescript' || label === 'javascript') {
+		//return './ts.worker.bundle.js';
+		return prefix + 'typescript/ts.worker.js'
+	}
+	//return './editor.worker.bundle.js';
+	return prefix + 'editor/editor.worker.js'
+}
 
 const TS_COMPILER_OPTS: languages.typescript.CompilerOptions = {
 	allowNonTsExtensions: true,

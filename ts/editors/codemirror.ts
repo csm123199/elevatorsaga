@@ -1,7 +1,7 @@
 
 declare const CodeMirror: typeof import('codemirror')
-import { Observable } from '../observable.js'
-import { CodeEditorBase, debounce } from './common.js'
+import { Observable } from '../observable'
+import { CodeEditorBase, debounce } from './common'
 
 
 export class CodeMirrorEditor extends CodeEditorBase {
