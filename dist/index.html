@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Elevator Saga - the elevator programming game</title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="/font-awesome.min.4cca089a.css" type="text/css" media="all">
+	<link href="//fonts.googleapis.com/css?family=Oswald:400,700,300" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="/codemirror.fc48aa1a.css">
+	<link rel="stylesheet" href="/solarized.4446b3b9.css">
+	<link rel="stylesheet" href="/style.02f315b7.css" type="text/css" media="all">
+
+	<!--<script type="text/javascript" src="scripts/libs/jquery-2.1.1.min.js"></script>
+	<script type="text/javascript" src="scripts/libs/lodash.min.js"></script>-->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script type="text/javascript" src="/riot.82316cf3.js"></script> <!-- Note: Only for presenters.js ? -->
+
+	<script type="text/javascript" src="/codemirror.1c747554.js"></script>
+	<script type="text/javascript" src="/closebrackets.03b28edf.js"></script>
+	<script type="text/javascript" src="/javascript.f933e744.js"></script>
+
+	<link rel="stylesheet" data-name="vs/editor/editor.main" href="/editor.main.78f3f598.css">
+	<!--
+		<script>var require = { paths: { 'vs': './node_modules/monaco-editor/min/vs' } };</script>
+	<script type="text/javascript" src="node_modules/monaco-editor/min/vs/loader.js"></script>
+	<script type="text/javascript" src="node_modules/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+	<script type="text/javascript" src="node_modules/monaco-editor/min/vs/editor/editor.main.js"></script>
+	-->
+
+	<script type="text/javascript" src="/unobservable.4b6dbb5e.js"></script>
+
+	
+	<!--<script type="module" src="scripts/base.js"></script>
+	<script type="module" src="scripts/movable.js"></script>
+	<script type="module" src="scripts/floor.js"></script>
+	<script type="module" src="scripts/user.js"></script>
+	<script type="module" src="scripts/elevator.js"></script>
+	<script type="module" src="scripts/interfaces.js"></script>
+	<script type="module" src="scripts/world.js"></script>
+	<script type="module" src="scripts/presenters.js"></script>
+	<script type="module" src="scripts/challenges.js"></script>
+	<script type="module" src="scripts/fitness.js"></script>-->
+	<script src="/app.24f08f8b.js"></script>
+	
+	<!-- <script type="text/javascript" src="scripts/bundle.js"></script> -->
+
+	<script type="text/template" id="user-template">
+		<i class="movable fa user fa-{u.displayType} {state}"></i>
+	</script>
+
+	<script type="text/template" id="floor-template">
+		<div class="floor" style="top: {yPosition}px">
+			<span class="floornumber">{level}</span>
+			<span class="buttonindicator">
+				<i class="fa fa-arrow-circle-up up"></i>
+				<i class="fa fa-arrow-circle-down down"></i>
+			</span>
+		</div>
+	</script>
+
+	<script type="text/template" id="elevator-template">
+		<div class="elevator movable" style="width: {e.width}px">
+			<span class="directionindicator directionindicatorup"><i class="fa fa-arrow-circle-up up activated"></i></span>
+			<span class="floorindicator"><span></span></span>
+			<span class="directionindicator directionindicatordown"><i class="fa fa-arrow-circle-down down activated"></i></span>
+			<span class="buttonindicator"></span>
+		</div>
+	</script>
+
+	<script type="text/template" id="elevatorbutton-template">
+		<span class="buttonpress">{floorNum}</span>
+	</script>
+
+	<script type="text/template" id="feedback-template">
+		<div class="feedback">
+			<h2 class="emphasis-color">{title}</h2>
+			<p class="emphasis-color">{message}</p>
+			<a href="{url}" class="emphasis-color">Next challenge <i class="fa fa-caret-right blink" style="text-decoration: blink"></i></a>
+		</div>
+	</script>
+
+	<script type="text/template" id="challenge-template">
+		<div class="left">
+			<h3>Challenge #{num}: {challenge.condition.description}</h3>
+		</div>
+		<button class="right startstop unselectable" style="width: 110px">{startButtonText}</button>
+		<h3 class="right">
+			<i class="fa fa-minus-square timescale_decrease unselectable"></i>
+			<span class="emphasis-color" style="display: inline-block; width: 22px; text-align: center">{timeScale}</span>
+			<i class="fa fa-plus-square timescale_increase unselectable"></i>
+		</h3>
+	</script>
+
+	<script type="text/template" id="codestatus-template">
+		<h5 class="error" style="display: {errorDisplay}"><i class="fa fa-warning error-color"></i> There is a problem with your code: {errorMessage}</h5>
+	</script>
+
+	<!-- Empty source attribute makes browsers ignore contained JS (but editors still give syntax highlighting) -->
+	<script type="text/template-javascript" id="default-elev-implementation" src="">
+export function init(elevators, floors) {
+	var elevator = elevators[0]; // Let's use the first elevator
+
+	// Whenever the elevator is idle (has no more queued destinations) ...
+	elevator.on("idle", function() {
+		// let's go to all the floors (or did we forget one?)
+		elevator.goToFloor(0);
+		elevator.goToFloor(1);
+	});
+}
+export function update(dt, elevators, floors) {
+	// We normally don't need to do anything here
+}
+	</script>
+	<script type="text/template-javascript" id="devtest-elev-implementation" src="">
+function elevatorPriority(e, floorNum) {
+	return
+		(e.destinationQueue.includes(floorNum) ? 4 : 0) +
+		(-e.destinationQueue.length * e.destinationQueue.length) +
+		(-e.loadFactor() * e.loadFactor() * 3);
+}
+
+export function init(elevators, floors) {
+	function selectElevatorForFloorPickup(floorNum) {
+		let with_priority = elevators
+			.map(e => [e, elevatorPriority(e, floorNum)])
+		with_priority.sort((a, b) => b[1] - a[1]) // sort by max priority
+		with_priority[0]
+	};
+
+	floors.forEach(floor => {
+		floor.on("down_button_pressed up_button_pressed", function () {
+			var elevator = selectElevatorForFloorPickup(floor.level);
+			if (elevator && !elevator.destinationQueue.includes(floor.level)) {
+				elevator.goToFloor(floor.level);
+			}
+		});
+	});
+	elevators.forEach(elevator => {
+		elevator.on("floor_button_pressed", floorNum => elevator.goToFloor(floorNum));
+		elevator.on("idle", () => elevator.goToFloor(0));
+	});
+}
+export function update(dt, elevators, floors) {
+}
+	</script>
+<link rel="stylesheet" href="/app.ad338b5e.css"></head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h1 class="left">Elevator Saga <em class="emphasis-color">The elevator programming game</em></h1>
+			<a class="right" href="https://github.com/magwo/elevatorsaga/wiki/">Wiki & Solutions</a>
+			<a class="right" href="/documentation.html#docs">Documentation</a>
+			<a class="right" href="/documentation.html">Help</a>
+		</div>
+
+		<noscript>
+			<h2>Your browser does not appear to support JavaScript. This page contains a browser-based programming game implemented in JavaScript.</h2>
+		</noscript>
+
+		<div class="challenge" style="height: 40px">
+		</div>
+
+		<div class="world">
+			<div class="feedbackcontainer"></div>
+			<div class="innerworld">
+			</div>
+			<div class="statscontainer">
+				<div style="top: 20px"><span class="key">Transported</span><span class="value transportedcounter"></span></div>
+				<div style="top: 40px"><span class="key">Elapsed time</span><span class="value elapsedtime"></span></div>
+				<div style="top: 60px"><span class="key">Transported/s</span><span class="value transportedpersec"></span></div>
+				<div style="top: 80px"><span class="key">Avg waiting time</span><span class="value avgwaittime"></span></div>
+				<div style="top: 100px"><span class="key">Max waiting time</span><span class="value maxwaittime"></span></div>
+				<div style="top: 120px"><span class="key" title="Number of floors that have been travelled by elevators">Moves</span><span class="value movecount"></span></div>
+			</div>
+		</div>
+
+		<div class="codestatus"></div>
+		<div class="code">
+			<textarea name="Code" id="code"></textarea>
+		</div>
+		<div class="code" id="code-monaco" data-lang="javascript" style="height:300px;border:1px solid grey; margin:5px 0px 5px"></div>
+		<button id="button_reset" style="float: left">Reset</button>
+		<button id="button_resetundo" style="float: left">Undo reset</button>
+		<button id="button_apply" style="float: right">Apply</button>
+		<button id="button_save" style="float: right">Save</button>
+		<span id="save_message" style="float: right"></span>
+		<span id="fitness_message" style="float: right"></span>
+		<div style="clear:both;"></div>
+
+		<div style="margin-top: 20px">
+			<h3>Confused? Open the <a href="/documentation.html">Help and API documentation</a> page</h3>
+		</div>
+		<div class="footer">
+			<h4>Made by Magnus Wolffelt and contributors</h4>
+			<h4>Version <span class="emphasis-color">1.6.5</span></h4>
+			<h4><a href="https://github.com/magwo/elevatorsaga">Source code</a> on GitHub</h4>
+			<h4><a href="/test/index.html">Run tests</a></h4>
+		</div>
+	</div>
+
+	<script>(function (i, s, o, g, r, a, m) {
+  i['GoogleAnalyticsObject'] = r;
+  i[r] = i[r] || function () {
+    (i[r].q = i[r].q || []).push(arguments);
+  }, i[r].l = 1 * new Date();
+  a = s.createElement(o), m = s.getElementsByTagName(o)[0];
+  a.async = 1;
+  a.src = g;
+  m.parentNode.insertBefore(a, m);
+})(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+ga('create', 'UA-56810935-1', 'auto');
+ga('send', 'pageview');</script>
+</body>
+</html>
